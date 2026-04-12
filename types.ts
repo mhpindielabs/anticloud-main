@@ -59,9 +59,17 @@ export interface BoardItem {
   groupId?: string;
 }
 
+export interface Connection {
+  id: string;
+  fromId: string;
+  toId: string;
+  color?: string;
+}
+
 export interface Board {
   id: string;
   items: BoardItem[];
+  connections?: Connection[];
   backgroundUrl: string;
   width?: number;
   height?: number;

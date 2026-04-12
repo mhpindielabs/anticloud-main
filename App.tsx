@@ -13,9 +13,9 @@ import LayersModal from './components/LayersModal';
 import InventoryModal from './components/InventoryModal';
 import SuggestionsModal from './components/SuggestionsModal';
 import TutorialGuide, { TUTORIAL_STEPS } from './components/TutorialGuide';
-import { 
-  PlusIcon, MusicIcon, LayersIcon, FileIcon, SettingsIcon, CameraIcon, 
-  BoardNextIcon, SelectIcon, SmartphoneIcon, HelpIcon, SuggestionIcon, GridIcon 
+import {
+  PlusIcon, MusicIcon, LayersIcon, FileIcon, SettingsIcon, CameraIcon,
+  BoardNextIcon, SelectIcon, SmartphoneIcon, HelpIcon, SuggestionIcon, GridIcon
 } from './components/Icons';
 import Modal from './components/Modal';
 import Toolbar from './components/Toolbar';
@@ -33,7 +33,7 @@ const App: React.FC = () => {
     boards, setBoards, activeBoardIndex, setActiveBoardIndex, activeBoard,
     handleUpdateItem, handleDeleteItem, handleDuplicateItem,
     handleSendItemToBack, handleReorderItem, handleGroupItems, handleUngroupItems, handleSendItemToBoard, handleAddBoard, handleRemoveBoard,
-    handleUpdateBoardSettings
+    handleUpdateBoardSettings, handleAddConnection, handleRemoveConnection
   } = useBoards();
 
   const {
@@ -60,7 +60,9 @@ const App: React.FC = () => {
     activeModal, setActiveModal, editingItem, setEditingItem,
     inventory, setInventory,
     activeThemeIndex, setActiveThemeIndex, isTutorialActive, setIsTutorialActive,
-    tutorialStep, setTutorialStep
+    tutorialStep, setTutorialStep,
+    connectingFromId, setConnectingFromId,
+    connectionPointerCoord, setConnectionPointerCoord
   } = useUIState();
 
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -103,7 +105,7 @@ const App: React.FC = () => {
         if (parsed.spriteImages) setSpriteImages(parsed.spriteImages);
         if (parsed.inventory) setInventory(parsed.inventory);
         if (parsed.activeThemeIndex !== undefined) setActiveThemeIndex(parsed.activeThemeIndex);
-        
+
         alert("¡Tierra Firme sincronizada! Datos del disquete (.anticloud) cargados con éxito.");
       } catch (error) {
         console.error("ANTI_CLOUD Error al leer disquete:", error);
@@ -154,18 +156,18 @@ const App: React.FC = () => {
   const handleNextTutorialStep = () => {
     setTutorialStep(prev => {
       const nextStep = prev + 1;
-      if (nextStep >= TUTORIAL_STEPS.length) { 
+      if (nextStep >= TUTORIAL_STEPS.length) {
         handleSkipTutorial();
         return prev;
       }
       return nextStep;
     });
   };
-  
+
   const handlePrevTutorialStep = () => {
     setTutorialStep(prev => Math.max(0, prev - 1));
   };
-  
+
   const handleSkipTutorial = () => {
     setIsTutorialActive(false);
     localStorage.setItem('pixelBoard_tutorialCompleted', 'true');
@@ -211,7 +213,10 @@ const App: React.FC = () => {
   }, [handlePanMouseMove, handlePanMouseUp, handlePanTouchMove, handlePanTouchEnd, handleSelectionMouseMove, handleSelectionMouseUp, handleMultiSelectMouseMove, handleMultiSelectMouseUp]);
 
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden">
+    <div 
+      className="relative w-screen h-screen bg-black overflow-hidden"
+      onContextMenu={(e) => e.preventDefault()}
+    >
       {(isInitializing || !isBoardsLoaded || !isUILoaded) && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[9999]">
           <p className="text-4xl font-bold text-white neon-text animate-pulse">Cargando Tierra Firme...</p>
@@ -222,7 +227,7 @@ const App: React.FC = () => {
           <p className="text-4xl text-white animate-pulse">Capturando pizarra...</p>
         </div>
       )}
-      
+
       <input
         type="file"
         ref={backgroundInputRef}
@@ -273,6 +278,12 @@ const App: React.FC = () => {
         setSelectedItemIds={setSelectedItemIds}
         selectionRect={selectionRect}
         multiSelectRect={multiSelectRect}
+        connectingFromId={connectingFromId}
+        setConnectingFromId={setConnectingFromId}
+        connectionPointerCoord={connectionPointerCoord}
+        setConnectionPointerCoord={setConnectionPointerCoord}
+        handleAddConnection={handleAddConnection}
+        handleRemoveConnection={handleRemoveConnection}
       />
 
       <Toolbar
@@ -341,17 +352,17 @@ const App: React.FC = () => {
           collectionKeys={['x1/2', 'x1']}
           activeCollectionKey={activeTimerKey}
           onCollectionChange={(key) => setActiveTimerKey(key as TitleCollectionKey)}
-          onAdd={(imageUrl) => handleAddItemWithLog(ItemType.Timer, imageUrl, { 
-            timerMode: 'chrono', 
-            timerValue: 0, 
-            timerInitialValue: 0, 
+          onAdd={(imageUrl) => handleAddItemWithLog(ItemType.Timer, imageUrl, {
+            timerMode: 'chrono',
+            timerValue: 0,
+            timerInitialValue: 0,
             isTimerRunning: false,
             text: '00:00'
           })}
           onEditImages={(key) => setActiveModal({ type: 'editTitleImages', key })}
         />
       )}
-      
+
       {activeModal === 'addFile' && (
         <AddElementModal
           title="Añadir Archivo Inteligente"
@@ -481,8 +492,8 @@ const App: React.FC = () => {
           collections={titleImages}
           onClose={() => setActiveModal(null)}
           onAdd={(chordName, imageUrl, color, shadowColor) => {
-            handleAddItem(ItemType.Music, imageUrl, { 
-              text: chordName, 
+            handleAddItem(ItemType.Music, imageUrl, {
+              text: chordName,
               textColor: color,
               textShadowColor: shadowColor,
               textShadow: true

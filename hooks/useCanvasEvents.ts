@@ -115,6 +115,9 @@ export const useCanvasEvents = ({
   }, [activeBoard, zoom, boardRef, setMultiSelectRect, setSelectedItemIds, handleMultiSelectMouseMove]);
 
   const handlePanMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.button === 1) {
+      e.preventDefault(); // Evita el compás de auto-scroll nativo del navegador
+    }
     if ((e.target as HTMLElement).closest('.group') || (e.target as HTMLElement).closest('button')) return;
     setSelectedItemId(null);
     if (!e.shiftKey && !isMultiSelectMode) setSelectedItemIds([]);

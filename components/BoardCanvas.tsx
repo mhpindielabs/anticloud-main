@@ -27,6 +27,12 @@ interface BoardCanvasProps {
   setSelectedItemIds: React.Dispatch<React.SetStateAction<string[]>>;
   selectionRect: { x: number; y: number; width: number; height: number; } | null;
   multiSelectRect: { x: number; y: number; width: number; height: number; } | null;
+  connectingFromId: string | null;
+  setConnectingFromId: (id: string | null) => void;
+  connectionPointerCoord: {x: number; y: number} | null;
+  setConnectionPointerCoord: (coord: {x: number; y: number} | null) => void;
+  handleAddConnection: (fromId: string, toId: string) => void;
+  handleRemoveConnection: (connectionId: string) => void;
 }
 
 const BoardCanvas: React.FC<BoardCanvasProps> = ({
@@ -51,22 +57,42 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
   setSelectedItemId,
   setSelectedItemIds,
   selectionRect,
-  multiSelectRect
+  multiSelectRect,
+  connectingFromId,
+  setConnectingFromId,
+  connectionPointerCoord,
+  setConnectionPointerCoord,
+  handleAddConnection,
+  handleRemoveConnection
 }) => {
   return (
-    <div 
-      ref={viewportRef} 
+    <div
+      ref={viewportRef}
       id="tutorial-viewport"
       className={`w-full h-full overflow-auto ${isMultiSelectMode ? 'cursor-crosshair' : 'cursor-grab'}`}
       onWheel={handleWheel}
       onMouseDown={handlePanMouseDown}
       onTouchStart={handlePanTouchStart}
+      onMouseMove={(e) => {
+        if (connectingFromId && boardRef.current) {
+          const rect = boardRef.current.getBoundingClientRect();
+          const currentX = (e.clientX - rect.left) / zoom;
+          const currentY = (e.clientY - rect.top) / zoom;
+          setConnectionPointerCoord({ x: currentX, y: currentY });
+        }
+      }}
+      onClick={(e) => {
+        if (connectingFromId && !(e.target as HTMLElement).closest('.group')) {
+          setConnectingFromId(null);
+          setConnectionPointerCoord(null);
+        }
+      }}
     >
-      <div 
+      <div
         ref={boardRef}
-        className={`relative ${activeBoard.screenFilter ? `filter-${activeBoard.screenFilter}` : ''}`} 
-        style={{ 
-          width: `${activeBoard.width || 3000}px`, 
+        className={`relative ${activeBoard.screenFilter ? `filter-${activeBoard.screenFilter}` : ''}`}
+        style={{
+          width: `${activeBoard.width || 3000}px`,
           height: `${activeBoard.height || 2000}px`,
           backgroundColor: '#000000',
           backgroundImage: activeBoard.backgroundUrl ? `url(${activeBoard.backgroundUrl})` : 'none',
@@ -78,10 +104,10 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
         }}
       >
         {activeBoard.particles && activeBoard.particles !== 'none' && (
-          <ParticleSystem 
-            type={activeBoard.particles} 
-            width={activeBoard.width || 3000} 
-            height={activeBoard.height || 2000} 
+          <ParticleSystem
+            type={activeBoard.particles}
+            width={activeBoard.width || 3000}
+            height={activeBoard.height || 2000}
           />
         )}
         {isGridVisible && (
@@ -97,12 +123,56 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             }}
           />
         )}
+
+        <svg className="absolute inset-0 pointer-events-none" style={{ width: '100%', height: '100%', zIndex: 0 }}>
+          {activeBoard.connections?.map(conn => {
+            const fromItem = activeBoard.items.find(i => i.id === conn.fromId);
+            const toItem = activeBoard.items.find(i => i.id === conn.toId);
+            if (!fromItem || !toItem) return null;
+            
+            const fromX = fromItem.x + fromItem.width / 2;
+            const fromY = fromItem.y + fromItem.height / 2;
+            const toX = toItem.x + toItem.width / 2;
+            const toY = toItem.y + toItem.height / 2;
+            
+            return (
+              <g key={conn.id} className="pointer-events-auto cursor-pointer" onClick={(e) => { e.stopPropagation(); handleRemoveConnection(conn.id); }} title="Eliminar Conexión">
+                <line data-from={conn.fromId} data-to={conn.toId} x1={fromX} y1={fromY} x2={toX} y2={toY} stroke="transparent" strokeWidth="20" />
+                <line 
+                  data-from={conn.fromId} data-to={conn.toId}
+                  x1={fromX} y1={fromY} x2={toX} y2={toY} 
+                  stroke={conn.color || 'var(--pixel-highlight-color, #ffaa00)'} 
+                  strokeWidth="4" 
+                  strokeDasharray="8,8"
+                  style={{ animation: 'scanline 2s linear infinite' }}
+                />
+              </g>
+            );
+          })}
+          
+          {connectingFromId && connectionPointerCoord && (() => {
+            const fromItem = activeBoard.items.find(i => i.id === connectingFromId);
+            if (!fromItem) return null;
+            const fromX = fromItem.x + fromItem.width / 2;
+            const fromY = fromItem.y + fromItem.height / 2;
+            return (
+              <line 
+                x1={fromX} y1={fromY} 
+                x2={connectionPointerCoord.x} y2={connectionPointerCoord.y} 
+                stroke="var(--pixel-highlight-color, #ffaa00)" 
+                strokeWidth="4" 
+                strokeDasharray="8,8" 
+              />
+            );
+          })()}
+        </svg>
+
         {activeBoard.items.map(item => (
-          <DraggableItem 
-            key={item.id} 
-            item={item} 
-            onUpdate={(updated) => handleUpdateItem(updated, selectedItemIds)} 
-            onDelete={(id) => handleDeleteItem(id, setSelectedItemIds, setSelectedItemId)} 
+          <DraggableItem
+            key={item.id}
+            item={item}
+            onUpdate={(updated) => handleUpdateItem(updated, selectedItemIds)}
+            onDelete={(id) => handleDeleteItem(id, setSelectedItemIds, setSelectedItemId)}
             onDuplicate={handleDuplicateItem}
             onEdit={handleStartEditItem}
             onSendToBack={handleSendItemToBack}
@@ -116,7 +186,7 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             selectedItemIds={selectedItemIds}
             onSelect={(id) => {
               if (selectedItemIds.includes(id)) return;
-              
+
               const item = activeBoard.items.find(i => i.id === id);
               if (item?.groupId) {
                 const groupItemIds = activeBoard.items
@@ -128,6 +198,15 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
                 setSelectedItemId(id);
                 setSelectedItemIds([]);
               }
+            }}
+            connectingFromId={connectingFromId}
+            onConnectStart={(id) => setConnectingFromId(id)}
+            onConnectComplete={(id) => {
+              if (connectingFromId && connectingFromId !== id) {
+                handleAddConnection(connectingFromId, id);
+              }
+              setConnectingFromId(null);
+              setConnectionPointerCoord(null);
             }}
           />
         ))}

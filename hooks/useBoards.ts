@@ -52,7 +52,7 @@ export const useBoards = () => {
   const handleUpdateItem = useCallback((updatedItem: BoardItem, selectedItemIds: string[]) => {
     setBoards(prev => prev.map((board, index) => {
       if (index !== activeBoardIndex) return board;
-      
+
       const oldItem = board.items.find(i => i.id === updatedItem.id);
       if (!oldItem) return board;
 
@@ -81,7 +81,7 @@ export const useBoards = () => {
   }, [activeBoardIndex]);
 
   const handleDeleteItem = useCallback((id: string, setSelectedItemIds: React.Dispatch<React.SetStateAction<string[]>>, setSelectedItemId: React.Dispatch<React.SetStateAction<string | null>>) => {
-    setBoards(prev => prev.map((board, index) => 
+    setBoards(prev => prev.map((board, index) =>
       index === activeBoardIndex
         ? { ...board, items: board.items.filter(item => item.id !== id) }
         : board
@@ -105,7 +105,7 @@ export const useBoards = () => {
         x: itemToDuplicate.x + GRID_SIZE,
         y: itemToDuplicate.y + GRID_SIZE,
       };
-      
+
       const boardWidth = boardToUpdate.width || 3000;
       const boardHeight = boardToUpdate.height || 2000;
       newItem.x = Math.max(0, Math.min(newItem.x, boardWidth - newItem.width));
@@ -195,25 +195,54 @@ export const useBoards = () => {
   const handleGroupItems = useCallback((itemIds: string[]) => {
     if (itemIds.length < 2) return;
     const groupId = `group-${Date.now()}`;
-    setBoards(prev => prev.map((board, index) => 
-      index === activeBoardIndex 
+    setBoards(prev => prev.map((board, index) =>
+      index === activeBoardIndex
         ? { ...board, items: board.items.map(item => itemIds.includes(item.id) ? { ...item, groupId } : item) }
         : board
     ));
   }, [activeBoardIndex]);
 
   const handleUngroupItems = useCallback((itemIds: string[]) => {
-    setBoards(prev => prev.map((board, index) => 
-      index === activeBoardIndex 
+    setBoards(prev => prev.map((board, index) =>
+      index === activeBoardIndex
         ? { ...board, items: board.items.map(item => itemIds.includes(item.id) ? { ...item, groupId: undefined } : item) }
         : board
     ));
   }, [activeBoardIndex]);
 
   const handleUpdateBoardSettings = useCallback((settings: Partial<Board>) => {
-    setBoards(prev => prev.map((board, index) => 
+    setBoards(prev => prev.map((board, index) =>
       index === activeBoardIndex ? { ...board, ...settings } : board
     ));
+  }, [activeBoardIndex]);
+
+  const handleAddConnection = useCallback((fromId: string, toId: string) => {
+    setBoards(prev => prev.map((board, index) => {
+      if (index !== activeBoardIndex) return board;
+      const connections = board.connections || [];
+      if (fromId === toId || connections.some(c => (c.fromId === fromId && c.toId === toId) || (c.fromId === toId && c.toId === fromId))) {
+        return board;
+      }
+      return {
+        ...board,
+        connections: [...connections, {
+          id: `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          fromId,
+          toId,
+          color: 'var(--pixel-highlight-color, #ffaa00)'
+        }]
+      };
+    }));
+  }, [activeBoardIndex]);
+
+  const handleRemoveConnection = useCallback((connectionId: string) => {
+    setBoards(prev => prev.map((board, index) => {
+      if (index !== activeBoardIndex) return board;
+      return {
+        ...board,
+        connections: (board.connections || []).filter(c => c.id !== connectionId)
+      };
+    }));
   }, [activeBoardIndex]);
 
   return {
@@ -233,6 +262,8 @@ export const useBoards = () => {
     handleSendItemToBoard,
     handleAddBoard,
     handleRemoveBoard,
-    handleUpdateBoardSettings
+    handleUpdateBoardSettings,
+    handleAddConnection,
+    handleRemoveConnection
   };
 };

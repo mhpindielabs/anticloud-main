@@ -43,6 +43,8 @@ export const useUIState = () => {
   const [activeThemeIndex, setActiveThemeIndex] = useState(0);
   const [isTutorialActive, setIsTutorialActive] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+  const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
+  const [connectionPointerCoord, setConnectionPointerCoord] = useState<{x: number; y: number} | null>(null);
 
   const categoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -118,6 +120,8 @@ export const useUIState = () => {
     inventory, setInventory,
     activeThemeIndex, setActiveThemeIndex,
     isTutorialActive, setIsTutorialActive,
-    tutorialStep, setTutorialStep
+    tutorialStep, setTutorialStep,
+    connectingFromId, setConnectingFromId,
+    connectionPointerCoord, setConnectionPointerCoord
   };
 };
