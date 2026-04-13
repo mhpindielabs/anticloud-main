@@ -5,7 +5,7 @@ import AddElementModal from './components/AddElementModal';
 import AddChordModal from './components/AddChordModal';
 import AddHarmonizationModal from './components/AddHarmonizationModal';
 import EditImagesModal from './components/EditImagesModal';
-import Dpad from './components/Dpad';
+
 import TextEditModal from './components/TextEditModal';
 import BoardSettingsModal from './components/BoardSettingsModal';
 import LayersModal from './components/LayersModal';
@@ -346,7 +346,7 @@ const App: React.FC = () => {
         disketteInputRef={disketteInputRef}
       />
 
-      <Dpad onMoveStart={handleMoveStart} onMoveEnd={handleMoveEnd} isMobileMode={isMobileMode} />
+
 
       {/* Modals */}
       {activeModal === 'addCounter' && (

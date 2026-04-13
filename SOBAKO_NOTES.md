@@ -1,2 +1,2 @@
 - Hotkeys básicas con la caja.
-- 
+- Eliminar controles cámara gui flechas mobile.

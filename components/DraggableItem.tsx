@@ -491,22 +491,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     });
   };
 
-  const handleCopyText = useCallback(() => {
-    if (item.text) {
-      navigator.clipboard.writeText(item.text);
-    }
-  }, [item.text]);
 
-  const handlePasteText = useCallback(async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (text) {
-        onUpdate({ ...item, text: text, textFragments: undefined });
-      }
-    } catch (err) {
-      console.error('Failed to read clipboard:', err);
-    }
-  }, [item, onUpdate]);
 
   const handleDownloadFile = useCallback(() => {
     if (item.fileContent && item.fileName) {
@@ -763,12 +748,6 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
             <>
               <button onClick={() => onEdit(item)} className="pixel-button p-1 bg-blue-600 hover:bg-blue-500" title="Editar Texto">
                 <EditIcon />
-              </button>
-              <button onClick={handleCopyText} className="pixel-button p-1 bg-amber-600 hover:bg-amber-500" title="Copiar Texto">
-                <CopyIcon />
-              </button>
-              <button onClick={handlePasteText} className="pixel-button p-1 bg-purple-600 hover:bg-purple-500" title="Pegar Texto">
-                <PasteIcon />
               </button>
             </>
           )}
