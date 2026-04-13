@@ -10,6 +10,8 @@ interface DraggableItemProps {
   onEdit: (item: BoardItem) => void;
   onSendToBack: (id: string) => void;
   onSaveToInventory: (item: BoardItem) => void;
+  onRemoveFromInventory: (id: string) => void;
+  inventory: BoardItem[];
   boardRef: React.RefObject<HTMLDivElement>;
   zoom: number;
   snapToGrid: boolean;
@@ -23,7 +25,7 @@ interface DraggableItemProps {
   onConnectComplete?: (id: string) => void;
 }
 
-const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onSaveToInventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
+const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onSaveToInventory, onRemoveFromInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
   // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
   const MARGENES_TEXTO = {
     izquierdo: 15,
@@ -35,10 +37,10 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const [isDragging, setIsDragging] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(item.imageUrl);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
-  const [isEditingText, setIsEditingText] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [wasSaved, setWasSaved] = useState(false);
+  const isInInventory = inventory.some(i => i.id === item.id);
   const textEditRef = useRef<HTMLParagraphElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -773,14 +775,18 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
           )}
           <button 
             onClick={() => {
-              onSaveToInventory(item);
-              setWasSaved(true);
-              setTimeout(() => setWasSaved(false), 2000);
+              if (isInInventory) {
+                onRemoveFromInventory(item.id);
+              } else {
+                onSaveToInventory(item);
+                setWasSaved(true);
+                setTimeout(() => setWasSaved(false), 2000);
+              }
             }} 
-            className={`pixel-button p-1 transition-all duration-300 ${wasSaved ? 'bg-green-600 scale-110' : 'bg-amber-600 hover:bg-amber-500'}`}
-            title={wasSaved ? "¡Guardado!" : "Guardar en Inventario"}
+            className={`pixel-button p-1 transition-all duration-300 ${isInInventory ? 'bg-green-600' : 'bg-amber-600 hover:bg-amber-500'} ${wasSaved ? 'scale-110' : ''}`}
+            title={isInInventory ? "Quitar del Inventario" : "Guardar en Inventario"}
           >
-            {wasSaved ? <CheckboxIcon /> : <FileIcon />}
+            {isInInventory ? <CheckboxIcon /> : <FileIcon />}
           </button>
           <button onClick={() => onDelete(item.id)} className="pixel-button p-1 bg-red-700 hover:bg-red-600" title="Eliminar Elemento">
             <DeleteIcon />

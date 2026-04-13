@@ -20,6 +20,8 @@ interface BoardCanvasProps {
   handleStartEditItem: (item: BoardItem) => void;
   handleSendItemToBack: (id: string) => void;
   onSaveToInventory: (item: BoardItem) => void;
+  onRemoveFromInventory: (id: string) => void;
+  inventory: BoardItem[];
   isMobileMode: boolean;
   selectedItemId: string | null;
   selectedItemIds: string[];
@@ -51,6 +53,8 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
   handleStartEditItem,
   handleSendItemToBack,
   onSaveToInventory,
+  onRemoveFromInventory,
+  inventory,
   isMobileMode,
   selectedItemId,
   selectedItemIds,
@@ -177,6 +181,8 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             onEdit={handleStartEditItem}
             onSendToBack={handleSendItemToBack}
             onSaveToInventory={onSaveToInventory}
+            onRemoveFromInventory={onRemoveFromInventory}
+            inventory={inventory}
             boardRef={boardRef}
             zoom={zoom}
             snapToGrid={isGridVisible}

@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { ItemType, TitleCollectionKey, TextboxCollectionKey, AssetCategory } from './types';
+import { ItemType, TitleCollectionKey, TextboxCollectionKey, AssetCategory, BoardItem } from './types';
 import { FONT_FACES, THEMES } from './constants';
 import AddElementModal from './components/AddElementModal';
 import AddChordModal from './components/AddChordModal';
@@ -175,7 +175,6 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isTutorialActive) return;
 
-    // Map tutorial steps to toolbar categories that need to be open
     const stepToCategory: Record<number, string | null> = {
       1: 'add',
       2: 'add',
@@ -197,7 +196,6 @@ const App: React.FC = () => {
     }
   }, [tutorialStep, isTutorialActive, handleCategoryEnter, handleCategoryLeave]);
 
-  // Ctrl mantenido invierte el estado de la cuadrícula; al soltar, vuelve al original
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Control' && !e.repeat) {
@@ -230,6 +228,14 @@ const App: React.FC = () => {
     };
     return cleanup;
   }, [handlePanMouseMove, handlePanMouseUp, handlePanTouchMove, handlePanTouchEnd, handleSelectionMouseMove, handleSelectionMouseUp, handleMultiSelectMouseMove, handleMultiSelectMouseUp]);
+
+  const toggleInventory = (item: BoardItem) => {
+    setInventory(prev => {
+      const exists = prev.find(i => i.id === item.id);
+      if (exists) return prev.filter(i => i.id !== item.id);
+      return [...prev, { ...item }];
+    });
+  };
 
   return (
     <div 
@@ -284,12 +290,9 @@ const App: React.FC = () => {
         handleDuplicateItem={handleDuplicateItem}
         handleStartEditItem={handleStartEditItem}
         handleSendItemToBack={handleSendItemToBack}
-        onSaveToInventory={(item) => {
-          setInventory(prev => {
-            if (prev.find(i => i.id === item.id)) return prev;
-            return [...prev, { ...item }];
-          });
-        }}
+        onSaveToInventory={toggleInventory}
+        onRemoveFromInventory={(id) => setInventory(prev => prev.filter(i => i.id !== id))}
+        inventory={inventory}
         isMobileMode={isMobileMode}
         selectedItemId={selectedItemId}
         selectedItemIds={selectedItemIds}
@@ -346,9 +349,6 @@ const App: React.FC = () => {
         disketteInputRef={disketteInputRef}
       />
 
-
-
-      {/* Modals */}
       {activeModal === 'addCounter' && (
         <AddElementModal
           title="Añadir Contador"
@@ -533,7 +533,6 @@ const App: React.FC = () => {
         />
       )}
 
-
       {activeModal && typeof activeModal === 'object' && activeModal.type === 'editTitleImages' && (
         <EditImagesModal
           onClose={() => setActiveModal(activeModal.returnTo || 'addTitle')}
@@ -571,14 +570,6 @@ const App: React.FC = () => {
           images={spriteImages[activeModal.key]?.images || []}
           type="sprite"
           title={`Editar Imágenes de Sprite (${activeModal.key})`}
-        />
-      )}
-
-      {activeModal === 'boardSettings' && (
-        <BoardSettingsModal
-          board={activeBoard}
-          onClose={() => setActiveModal(null)}
-          onSave={handleUpdateBoardSettings}
         />
       )}
 
