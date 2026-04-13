@@ -175,6 +175,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!isTutorialActive) return;
 
+    // Map tutorial steps to toolbar categories that need to be open
     const stepToCategory: Record<number, string | null> = {
       1: 'add',
       2: 'add',
@@ -196,6 +197,7 @@ const App: React.FC = () => {
     }
   }, [tutorialStep, isTutorialActive, handleCategoryEnter, handleCategoryLeave]);
 
+  // Ctrl mantenido invierte el estado de la cuadrícula; al soltar, vuelve al original
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Control' && !e.repeat) {
@@ -238,7 +240,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="relative w-screen h-screen bg-black overflow-hidden"
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -290,8 +292,7 @@ const App: React.FC = () => {
         handleDuplicateItem={handleDuplicateItem}
         handleStartEditItem={handleStartEditItem}
         handleSendItemToBack={handleSendItemToBack}
-        onSaveToInventory={toggleInventory}
-        onRemoveFromInventory={(id) => setInventory(prev => prev.filter(i => i.id !== id))}
+        onToggleInventory={toggleInventory}
         inventory={inventory}
         isMobileMode={isMobileMode}
         selectedItemId={selectedItemId}
@@ -349,6 +350,9 @@ const App: React.FC = () => {
         disketteInputRef={disketteInputRef}
       />
 
+
+
+      {/* Modals */}
       {activeModal === 'addCounter' && (
         <AddElementModal
           title="Añadir Contador"
@@ -533,6 +537,7 @@ const App: React.FC = () => {
         />
       )}
 
+
       {activeModal && typeof activeModal === 'object' && activeModal.type === 'editTitleImages' && (
         <EditImagesModal
           onClose={() => setActiveModal(activeModal.returnTo || 'addTitle')}
@@ -581,6 +586,14 @@ const App: React.FC = () => {
         />
       )}
 
+      {activeModal === 'boardSettings' && (
+        <BoardSettingsModal
+          board={activeBoard}
+          onClose={() => setActiveModal(null)}
+          onSave={handleUpdateBoardSettings}
+        />
+      )}
+
       {activeModal === 'suggestions' && (
         <SuggestionsModal
           onClose={() => setActiveModal(null)}
@@ -610,7 +623,7 @@ const App: React.FC = () => {
             handleAddItem(item.type, item.imageUrl, { ...rest });
             setActiveModal(null);
           }}
-          onRemoveItem={(id) => setInventory(prev => prev.filter(i => i.id !== id))}
+          onToggleInventory={toggleInventory}
         />
       )}
 

@@ -9,8 +9,7 @@ interface DraggableItemProps {
   onDuplicate: (id: string) => void;
   onEdit: (item: BoardItem) => void;
   onSendToBack: (id: string) => void;
-  onSaveToInventory: (item: BoardItem) => void;
-  onRemoveFromInventory: (id: string) => void;
+  onToggleInventory: (item: BoardItem) => void;
   inventory: BoardItem[];
   boardRef: React.RefObject<HTMLDivElement>;
   zoom: number;
@@ -25,7 +24,7 @@ interface DraggableItemProps {
   onConnectComplete?: (id: string) => void;
 }
 
-const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onSaveToInventory, onRemoveFromInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
+const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
   // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
   const MARGENES_TEXTO = {
     izquierdo: 15,
@@ -37,6 +36,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const [isDragging, setIsDragging] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(item.imageUrl);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
+  const [isEditingText, setIsEditingText] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [wasSaved, setWasSaved] = useState(false);
@@ -201,18 +201,18 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   // MOTOR RÍTMICO ULTRA-SIMPLIFICADO
   useEffect(() => {
     itemRef.current = item;
-    
+
     const sequence = item.animationHueFilters || (item.secondaryBoxFilter ? [item.boxFilter || 'none', item.secondaryBoxFilter] : []);
 
     if (sequence.length > 1 && item.blinkInterval) {
       const intervalId = setInterval(() => {
         setCurrentFrameIndex(prev => (prev + 1) % sequence.length);
-        
+
         if (item.secondaryImageUrl) {
           setCurrentImageUrl(prev => prev === item.imageUrl ? item.secondaryImageUrl! : item.imageUrl);
         }
       }, item.blinkInterval);
-      
+
       return () => clearInterval(intervalId);
     } else {
       setCurrentImageUrl(item.imageUrl);
@@ -220,18 +220,18 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     }
   }, [
     item.id,
-    item.imageUrl, 
-    item.secondaryImageUrl, 
-    item.boxFilter, 
-    item.secondaryBoxFilter, 
-    JSON.stringify(item.animationHueFilters), 
+    item.imageUrl,
+    item.secondaryImageUrl,
+    item.boxFilter,
+    item.secondaryBoxFilter,
+    JSON.stringify(item.animationHueFilters),
     item.blinkInterval
   ]);
 
   // Filtro derivado del índice para sincronización atómica
   const activeSequence = item.animationHueFilters || (item.secondaryBoxFilter ? [item.boxFilter || 'none', item.secondaryBoxFilter] : []);
-  const activeBoxFilter = activeSequence.length > 1 
-    ? activeSequence[currentFrameIndex % activeSequence.length] 
+  const activeBoxFilter = activeSequence.length > 1
+    ? activeSequence[currentFrameIndex % activeSequence.length]
     : (item.boxFilter || 'none');
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -775,10 +775,8 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
           )}
           <button 
             onClick={() => {
-              if (isInInventory) {
-                onRemoveFromInventory(item.id);
-              } else {
-                onSaveToInventory(item);
+              onToggleInventory(item);
+              if (!isInInventory) {
                 setWasSaved(true);
                 setTimeout(() => setWasSaved(false), 2000);
               }

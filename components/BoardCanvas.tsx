@@ -19,8 +19,7 @@ interface BoardCanvasProps {
   handleDuplicateItem: (id: string) => void;
   handleStartEditItem: (item: BoardItem) => void;
   handleSendItemToBack: (id: string) => void;
-  onSaveToInventory: (item: BoardItem) => void;
-  onRemoveFromInventory: (id: string) => void;
+  onToggleInventory: (item: BoardItem) => void;
   inventory: BoardItem[];
   isMobileMode: boolean;
   selectedItemId: string | null;
@@ -31,8 +30,8 @@ interface BoardCanvasProps {
   multiSelectRect: { x: number; y: number; width: number; height: number; } | null;
   connectingFromId: string | null;
   setConnectingFromId: (id: string | null) => void;
-  connectionPointerCoord: {x: number; y: number} | null;
-  setConnectionPointerCoord: (coord: {x: number; y: number} | null) => void;
+  connectionPointerCoord: { x: number; y: number } | null;
+  setConnectionPointerCoord: (coord: { x: number; y: number } | null) => void;
   handleAddConnection: (fromId: string, toId: string) => void;
   handleRemoveConnection: (connectionId: string) => void;
 }
@@ -52,8 +51,7 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
   handleDuplicateItem,
   handleStartEditItem,
   handleSendItemToBack,
-  onSaveToInventory,
-  onRemoveFromInventory,
+  onToggleInventory,
   inventory,
   isMobileMode,
   selectedItemId,
@@ -133,39 +131,39 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             const fromItem = activeBoard.items.find(i => i.id === conn.fromId);
             const toItem = activeBoard.items.find(i => i.id === conn.toId);
             if (!fromItem || !toItem) return null;
-            
+
             const fromX = fromItem.x + fromItem.width / 2;
             const fromY = fromItem.y + fromItem.height / 2;
             const toX = toItem.x + toItem.width / 2;
             const toY = toItem.y + toItem.height / 2;
-            
+
             return (
               <g key={conn.id} className="pointer-events-auto cursor-pointer" onClick={(e) => { e.stopPropagation(); handleRemoveConnection(conn.id); }} title="Eliminar Conexión">
                 <line data-from={conn.fromId} data-to={conn.toId} x1={fromX} y1={fromY} x2={toX} y2={toY} stroke="transparent" strokeWidth="20" />
-                <line 
+                <line
                   data-from={conn.fromId} data-to={conn.toId}
-                  x1={fromX} y1={fromY} x2={toX} y2={toY} 
-                  stroke={conn.color || 'var(--pixel-highlight-color, #ffaa00)'} 
-                  strokeWidth="4" 
+                  x1={fromX} y1={fromY} x2={toX} y2={toY}
+                  stroke={conn.color || 'var(--pixel-highlight-color, #ffaa00)'}
+                  strokeWidth="4"
                   strokeDasharray="8,8"
                   style={{ animation: 'scanline 2s linear infinite' }}
                 />
               </g>
             );
           })}
-          
+
           {connectingFromId && connectionPointerCoord && (() => {
             const fromItem = activeBoard.items.find(i => i.id === connectingFromId);
             if (!fromItem) return null;
             const fromX = fromItem.x + fromItem.width / 2;
             const fromY = fromItem.y + fromItem.height / 2;
             return (
-              <line 
-                x1={fromX} y1={fromY} 
-                x2={connectionPointerCoord.x} y2={connectionPointerCoord.y} 
-                stroke="var(--pixel-highlight-color, #ffaa00)" 
-                strokeWidth="4" 
-                strokeDasharray="8,8" 
+              <line
+                x1={fromX} y1={fromY}
+                x2={connectionPointerCoord.x} y2={connectionPointerCoord.y}
+                stroke="var(--pixel-highlight-color, #ffaa00)"
+                strokeWidth="4"
+                strokeDasharray="8,8"
               />
             );
           })()}
@@ -180,8 +178,7 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             onDuplicate={handleDuplicateItem}
             onEdit={handleStartEditItem}
             onSendToBack={handleSendItemToBack}
-            onSaveToInventory={onSaveToInventory}
-            onRemoveFromInventory={onRemoveFromInventory}
+            onToggleInventory={onToggleInventory}
             inventory={inventory}
             boardRef={boardRef}
             zoom={zoom}
