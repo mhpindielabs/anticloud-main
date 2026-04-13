@@ -24,13 +24,101 @@ interface DraggableItemProps {
 }
 
 const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onSaveToInventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
+  // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
+  const MARGENES_TEXTO = {
+    izquierdo: 13,
+    derecho: 13,
+    arriba: 13,
+    abajo: 20
+  };
+
   const [isDragging, setIsDragging] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(item.imageUrl);
+  const [isEditingText, setIsEditingText] = useState(false);
+  const textEditRef = useRef<HTMLParagraphElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
   const moveTimeoutRef = useRef<number | null>(null);
   const moveIntervalRef = useRef<number | null>(null);
   const itemRef = useRef(item);
+
+  const textDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; initialOffsetX: number; initialOffsetY: number; el: HTMLElement | null }>({
+    isDragging: false, startX: 0, startY: 0, initialOffsetX: 0, initialOffsetY: 0, el: null
+  });
+
+  const handleTextMouseMove = useCallback((e: MouseEvent) => {
+    const state = textDragRef.current;
+    if (!state.isDragging || !state.el) return;
+
+    // Obtener las dimensiones reales del texto contenido
+    const contentNode = state.el.firstElementChild as HTMLElement;
+    const textWidth = contentNode ? (contentNode.getBoundingClientRect().width / zoom) : 0;
+    const textHeight = contentNode ? (contentNode.getBoundingClientRect().height / zoom) : 0;
+
+    // Variables de delimitacion para mover el texto visualmente
+    let limiteIzquierdoX = -(item.width / 2) + (textWidth / 2) + MARGENES_TEXTO.izquierdo;
+    let limiteDerechoX = (item.width / 2) - (textWidth / 2) - MARGENES_TEXTO.derecho;
+    let limiteArribaY = -(item.height / 2) + (textHeight / 2) + MARGENES_TEXTO.arriba;
+    let limiteAbajoY = (item.height / 2) - (textHeight / 2) - MARGENES_TEXTO.abajo;
+
+    const dx = (e.clientX - state.startX) / zoom;
+    const dy = (e.clientY - state.startY) / zoom;
+
+    let newX = state.initialOffsetX + dx;
+    let newY = state.initialOffsetY + dy;
+
+    newX = Math.max(limiteIzquierdoX, Math.min(newX, limiteDerechoX));
+    newY = Math.max(limiteArribaY, Math.min(newY, limiteAbajoY));
+
+    // Snap a la cuadrícula si está activada
+    if (snapToGrid) {
+      newX = Math.round(newX / gridSize) * gridSize;
+      newY = Math.round(newY / gridSize) * gridSize;
+    }
+
+    state.el.style.transform = `translate(${newX}px, ${newY}px)`;
+  }, [item.width, item.height, zoom, snapToGrid, gridSize]);
+
+  const handleTextMouseUp = useCallback((e: MouseEvent) => {
+    const state = textDragRef.current;
+    if (!state.isDragging || !state.el) return;
+
+    state.isDragging = false;
+
+    // Obtener las dimensiones reales del texto contenido
+    const contentNode = state.el.firstElementChild as HTMLElement;
+    const textWidth = contentNode ? (contentNode.getBoundingClientRect().width / zoom) : 0;
+    const textHeight = contentNode ? (contentNode.getBoundingClientRect().height / zoom) : 0;
+
+    let limiteIzquierdoX = -(item.width / 2) + (textWidth / 2) + MARGENES_TEXTO.izquierdo;
+    let limiteDerechoX = (item.width / 2) - (textWidth / 2) - MARGENES_TEXTO.derecho;
+    let limiteArribaY = -(item.height / 2) + (textHeight / 2) + MARGENES_TEXTO.arriba;
+    let limiteAbajoY = (item.height / 2) - (textHeight / 2) - MARGENES_TEXTO.abajo;
+
+    const dx = (e.clientX - state.startX) / zoom;
+    const dy = (e.clientY - state.startY) / zoom;
+
+    let newX = state.initialOffsetX + dx;
+    let newY = state.initialOffsetY + dy;
+
+    newX = Math.max(limiteIzquierdoX, Math.min(newX, limiteDerechoX));
+    newY = Math.max(limiteArribaY, Math.min(newY, limiteAbajoY));
+
+    // Snap a la cuadrícula si está activada
+    if (snapToGrid) {
+      newX = Math.round(newX / gridSize) * gridSize;
+      newY = Math.round(newY / gridSize) * gridSize;
+    }
+
+    onUpdate({
+      ...itemRef.current,
+      textOffsetX: newX,
+      textOffsetY: newY
+    });
+
+    document.removeEventListener('mousemove', handleTextMouseMove);
+    document.removeEventListener('mouseup', handleTextMouseUp);
+  }, [item.width, item.height, zoom, onUpdate, snapToGrid, gridSize]);
 
   useEffect(() => {
     itemRef.current = item;
@@ -45,6 +133,29 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   }, [item]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Checkear si es click derecho (2) para mover el texto libremente
+    if (e.button === 2) {
+      e.stopPropagation();
+      e.preventDefault();
+      const textContainer = dragRef.current?.querySelector('.text-container-move') as HTMLElement;
+      if (textContainer) {
+        textDragRef.current = {
+          isDragging: true,
+          startX: e.clientX,
+          startY: e.clientY,
+          initialOffsetX: item.textOffsetX || 0,
+          initialOffsetY: item.textOffsetY || 0,
+          el: textContainer
+        };
+        document.addEventListener('mousemove', handleTextMouseMove);
+        document.addEventListener('mouseup', handleTextMouseUp);
+      }
+      return;
+    }
+
+    // Permitir arrastrar el objeto única y exclusivamente con el click izquierdo (0)
+    if (e.button !== 0) return;
+
     // Prevent dragging when clicking on a button inside the item
     if ((e.target as HTMLElement).closest('button')) return;
 
@@ -107,48 +218,48 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
 
     // Multi-drag visual update
     if (isSelected && selectedItemIds.length > 1) {
-       selectedItemIds.forEach(id => {
-         if (id !== item.id) {
-           const el = document.querySelector(`[data-item-id="${id}"]`) as HTMLElement | null;
-           if (el) {
-             const originalX = parseFloat(el.getAttribute('data-original-x') || el.style.left || '0');
-             const originalY = parseFloat(el.getAttribute('data-original-y') || el.style.top || '0');
-             el.style.left = `${originalX + dx}px`;
-             el.style.top = `${originalY + dy}px`;
-             
-             // Update any DOM lines connected to these multi-selected items
-             const elWidth = parseFloat(el.style.width || '200');
-             const elHeight = parseFloat(el.style.height || '100');
-             const elCenterX = originalX + dx + elWidth / 2;
-             const elCenterY = originalY + dy + elHeight / 2;
-             
-             document.querySelectorAll(`line[data-from="${id}"]`).forEach(line => {
-               line.setAttribute('x1', elCenterX.toString());
-               line.setAttribute('y1', elCenterY.toString());
-             });
-             document.querySelectorAll(`line[data-to="${id}"]`).forEach(line => {
-               line.setAttribute('x2', elCenterX.toString());
-               line.setAttribute('y2', elCenterY.toString());
-             });
-           }
-         }
-       });
+      selectedItemIds.forEach(id => {
+        if (id !== item.id) {
+          const el = document.querySelector(`[data-item-id="${id}"]`) as HTMLElement | null;
+          if (el) {
+            const originalX = parseFloat(el.getAttribute('data-original-x') || el.style.left || '0');
+            const originalY = parseFloat(el.getAttribute('data-original-y') || el.style.top || '0');
+            el.style.left = `${originalX + dx}px`;
+            el.style.top = `${originalY + dy}px`;
+
+            // Update any DOM lines connected to these multi-selected items
+            const elWidth = parseFloat(el.style.width || '200');
+            const elHeight = parseFloat(el.style.height || '100');
+            const elCenterX = originalX + dx + elWidth / 2;
+            const elCenterY = originalY + dy + elHeight / 2;
+
+            document.querySelectorAll(`line[data-from="${id}"]`).forEach(line => {
+              line.setAttribute('x1', elCenterX.toString());
+              line.setAttribute('y1', elCenterY.toString());
+            });
+            document.querySelectorAll(`line[data-to="${id}"]`).forEach(line => {
+              line.setAttribute('x2', elCenterX.toString());
+              line.setAttribute('y2', elCenterY.toString());
+            });
+          }
+        }
+      });
     }
 
     // Direct DOM connection updates for this specific item rendering efficiency
     const centerX = newX + item.width / 2;
     const centerY = newY + item.height / 2;
-    
+
     document.querySelectorAll(`line[data-from="${item.id}"]`).forEach(line => {
       line.setAttribute('x1', centerX.toString());
       line.setAttribute('y1', centerY.toString());
     });
-    
+
     document.querySelectorAll(`line[data-to="${item.id}"]`).forEach(line => {
       line.setAttribute('x2', centerX.toString());
       line.setAttribute('y2', centerY.toString());
     });
-    
+
   }, [isDragging, zoom, gridSize, snapToGrid, item, isSelected, selectedItemIds]);
 
   const handleMouseUp = useCallback((e: MouseEvent) => {
@@ -395,11 +506,29 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
         ...neonGlowStyle
       }}
       onMouseDown={handleMouseDown}
+      onDoubleClick={(e) => {
+        if (!(e.target as HTMLElement).closest('button')) {
+          setIsEditingText(true);
+          // Esperar al siguiente tick para que el DOM se actualice antes de hacer foco
+          setTimeout(() => {
+            if (textEditRef.current) {
+              textEditRef.current.focus();
+              // Mover el cursor al final del texto
+              const range = document.createRange();
+              const sel = window.getSelection();
+              range.selectNodeContents(textEditRef.current);
+              range.collapse(false);
+              sel?.removeAllRanges();
+              sel?.addRange(range);
+            }
+          }, 0);
+        }
+      }}
     >
       <div className={`relative w-full h-full bg-cover bg-center select-none ${isDragging ? 'cursor-grabbing' : ''} ${effectClasses}`}>
         {!isPlainTextItem && <img src={currentImageUrl} alt="draggable item" className="w-full h-full pointer-events-none" referrerPolicy="no-referrer" />}
         <div
-          className={`absolute inset-0 p-4 flex items-center justify-center pointer-events-none`}
+          className={`text-container-move absolute inset-0 p-4 flex items-center justify-center pointer-events-none`}
           style={{
             transform: `translate(${item.textOffsetX || 0}px, ${item.textOffsetY || 0}px)`
           }}
@@ -416,30 +545,67 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
                 {item.checked && <div className="w-4 h-4 bg-current" />}
               </div>
             )}
-            <p
-              className={`whitespace-pre-wrap break-words pixel-text`}
-              style={{
-                color: item.textColor || '#000000',
-                fontFamily: item.fontFamily || 'inherit',
-                textShadow: textShadowStyle,
-                fontSize: `${item.fontSize || 24}px`,
-                lineHeight: 1.2,
-                textAlign: item.textAlign || 'center',
-                textTransform: item.textTransform || 'none',
-                textDecoration: (isCheckboxItem && item.checked) ? 'line-through' : 'none',
-                opacity: (isCheckboxItem && item.checked) ? 0.6 : 1,
-              }}
-            >
-              {item.textFragments && item.textFragments.length > 0 ? (
-                item.textFragments.map((frag, i) => (
-                  <span key={i} style={{ color: frag.color || item.textColor || '#000000' }}>
-                    {frag.text}
-                  </span>
-                ))
-              ) : (
-                item.text
-              )}
-            </p>
+            {isEditingText ? (
+              <p
+                ref={textEditRef}
+                contentEditable
+                suppressContentEditableWarning
+                className={`whitespace-pre-wrap break-words pixel-text outline-none cursor-text pointer-events-auto`}
+                style={{
+                  color: item.textColor || '#000000',
+                  fontFamily: item.fontFamily || 'inherit',
+                  textShadow: 'none',
+                  fontSize: `${item.fontSize || 24}px`,
+                  lineHeight: 1.2,
+                  textAlign: item.textAlign || 'center',
+                  textTransform: item.textTransform || 'none',
+                  minWidth: '10px',
+                  caretColor: '#f97316',
+                }}
+                onBlur={(e) => {
+                  const newText = e.currentTarget.innerText;
+                  setIsEditingText(false);
+                  if (newText !== item.text) {
+                    onUpdate({ ...itemRef.current, text: newText, textFragments: [] });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === 'Escape') {
+                    setIsEditingText(false);
+                    if (textEditRef.current) textEditRef.current.blur();
+                  }
+                }}
+                onMouseDown={(e) => e.stopPropagation()}
+              >
+                {item.text}
+              </p>
+            ) : (
+              <p
+                className={`whitespace-pre-wrap break-words pixel-text`}
+                style={{
+                  color: item.textColor || '#000000',
+                  fontFamily: item.fontFamily || 'inherit',
+                  textShadow: textShadowStyle,
+                  fontSize: `${item.fontSize || 24}px`,
+                  lineHeight: 1.2,
+                  textAlign: item.textAlign || 'center',
+                  textTransform: item.textTransform || 'none',
+                  textDecoration: (isCheckboxItem && item.checked) ? 'line-through' : 'none',
+                  opacity: (isCheckboxItem && item.checked) ? 0.6 : 1,
+                }}
+              >
+                {item.textFragments && item.textFragments.length > 0 ? (
+                  item.textFragments.map((frag, i) => (
+                    <span key={i} style={{ color: frag.color || item.textColor || '#000000' }}>
+                      {frag.text}
+                    </span>
+                  ))
+                ) : (
+                  item.text
+                )}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -467,17 +633,17 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
             <SendToBackIcon />
           </button>
           {onConnectStart && (
-             <button 
-               onMouseDown={(e) => {
-                 e.stopPropagation();
-                 if (connectingFromId === item.id && onConnectComplete) onConnectComplete(item.id); 
-                 else onConnectStart(item.id);
-               }} 
-               className={`pixel-button p-1 ${connectingFromId === item.id ? 'bg-orange-600 hover:bg-orange-500' : 'bg-cyan-600 hover:bg-cyan-500'}`} 
-               title={connectingFromId === item.id ? "Cancelar Enlace" : "Enlazar con..."}
-             >
-               <LinkIcon />
-             </button>
+            <button
+              onMouseDown={(e) => {
+                e.stopPropagation();
+                if (connectingFromId === item.id && onConnectComplete) onConnectComplete(item.id);
+                else onConnectStart(item.id);
+              }}
+              className={`pixel-button p-1 ${connectingFromId === item.id ? 'bg-orange-600 hover:bg-orange-500' : 'bg-cyan-600 hover:bg-cyan-500'}`}
+              title={connectingFromId === item.id ? "Cancelar Enlace" : "Enlazar con..."}
+            >
+              <LinkIcon />
+            </button>
           )}
           <button onClick={() => onSaveToInventory(item)} className="pixel-button p-1 bg-amber-600 hover:bg-amber-500" title="Guardar en Inventario">
             <FileIcon />
@@ -505,25 +671,20 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
           </div>
         )}
       </div>
-      {/* Text position controls */}
-      {(isTextEditable || isMusicItem) && (
+      {/* Music / Counter controls */}
+      {(isMusicItem || isCounterItem) && (
         <>
           <button
             onMouseDown={() => {
               if (isMusicItem) transposeMusic('up');
               else if (isCounterItem) handleCounterChange(1);
-              else handleMoveTextStart(0, -2);
             }}
-            onMouseUp={handleMoveTextEnd}
-            onMouseLeave={handleMoveTextEnd}
             onTouchStart={() => {
               if (isMusicItem) transposeMusic('up');
               else if (isCounterItem) handleCounterChange(1);
-              else handleMoveTextStart(0, -2);
             }}
-            onTouchEnd={handleMoveTextEnd}
             className={`absolute -top-3 -left-3 z-20 pixel-button p-1 transition-opacity pointer-events-auto ${controlClasses}`}
-            title={isMusicItem ? "Subir Tonalidad" : isCounterItem ? "Aumentar Contador" : "Mover Texto Arriba"}
+            title={isMusicItem ? "Subir Tonalidad" : "Aumentar Contador"}
           >
             <DpadUpIcon />
           </button>
@@ -531,47 +692,16 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
             onMouseDown={() => {
               if (isMusicItem) transposeMusic('down');
               else if (isCounterItem) handleCounterChange(-1);
-              else handleMoveTextStart(0, 2);
             }}
-            onMouseUp={handleMoveTextEnd}
-            onMouseLeave={handleMoveTextEnd}
             onTouchStart={() => {
               if (isMusicItem) transposeMusic('down');
               else if (isCounterItem) handleCounterChange(-1);
-              else handleMoveTextStart(0, 2);
             }}
-            onTouchEnd={handleMoveTextEnd}
             className={`absolute -bottom-3 -right-3 z-20 pixel-button p-1 transition-opacity pointer-events-auto ${controlClasses}`}
-            title={isMusicItem ? "Bajar Tonalidad" : isCounterItem ? "Disminuir Contador" : "Mover Texto Abajo"}
+            title={isMusicItem ? "Bajar Tonalidad" : "Disminuir Contador"}
           >
             <DpadDownIcon />
           </button>
-          <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 flex items-center gap-1 transition-opacity z-10 pointer-events-auto ${controlClasses}`}>
-            <div className="flex items-center p-1 gap-1 pixel-box bg-black/70">
-              <button
-                onMouseDown={() => handleMoveTextStart(-2, 0)}
-                onMouseUp={handleMoveTextEnd}
-                onMouseLeave={handleMoveTextEnd}
-                onTouchStart={() => handleMoveTextStart(-2, 0)}
-                onTouchEnd={handleMoveTextEnd}
-                className="pixel-button p-1"
-                title="Mover Texto Izquierda"
-              >
-                <DpadLeftIcon />
-              </button>
-              <button
-                onMouseDown={() => handleMoveTextStart(2, 0)}
-                onMouseUp={handleMoveTextEnd}
-                onMouseLeave={handleMoveTextEnd}
-                onTouchStart={() => handleMoveTextStart(2, 0)}
-                onTouchEnd={handleMoveTextEnd}
-                className="pixel-button p-1"
-                title="Mover Texto Derecha"
-              >
-                <DpadRightIcon />
-              </button>
-            </div>
-          </div>
         </>
       )}
     </div>

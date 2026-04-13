@@ -198,6 +198,22 @@ const App: React.FC = () => {
     }
   }, [tutorialStep, isTutorialActive, handleCategoryEnter, handleCategoryLeave]);
 
+  // Ctrl mantenido = cuadrícula visible; al soltar = oculta
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Control') setIsGridVisible(true);
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control') setIsGridVisible(false);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [setIsGridVisible]);
+
   useEffect(() => {
     const cleanup = () => {
       document.removeEventListener('mousemove', handlePanMouseMove);
