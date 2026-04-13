@@ -242,15 +242,19 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignorar si estamos escribiendo en un input o textarea
       if (
         document.activeElement?.tagName === 'INPUT' || 
         document.activeElement?.tagName === 'TEXTAREA' ||
         (document.activeElement as HTMLElement)?.isContentEditable
       ) return;
 
-      if ((e.key === 'Delete' || e.key === 'Backspace') && hoveredItemId) {
-        handleDeleteItem(hoveredItemId, setSelectedItemIds, setSelectedItemId);
-        setHoveredItemId(null);
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (hoveredItemId) {
+          e.preventDefault();
+          handleDeleteItem(hoveredItemId, setSelectedItemIds, setSelectedItemId);
+          setHoveredItemId(null);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -325,6 +329,8 @@ const App: React.FC = () => {
         setConnectionPointerCoord={setConnectionPointerCoord}
         handleAddConnection={handleAddConnection}
         handleRemoveConnection={handleRemoveConnection}
+        setHoveredItemId={setHoveredItemId}
+        hoveredItemId={hoveredItemId}
       />
 
       <Toolbar

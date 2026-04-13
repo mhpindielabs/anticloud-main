@@ -23,9 +23,10 @@ interface DraggableItemProps {
   onConnectStart?: (id: string) => void;
   onConnectComplete?: (id: string) => void;
   setHoveredItemId: (id: string | null) => void;
+  isHovered: boolean;
 }
 
-const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete, setHoveredItemId }) => {
+const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete, setHoveredItemId, isHovered }) => {
   // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
   const MARGENES_TEXTO = {
     izquierdo: 15,
@@ -598,13 +599,15 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     <div
       ref={dragRef}
       data-item-id={item.id}
-      className={`absolute group cursor-grab transition-shadow duration-200 ${isSelected ? 'ring-4 ring-orange-500 ring-inset' : 'hover:ring-2 hover:ring-white/30'}`}
+      className={`absolute group cursor-grab transition-all duration-200 ${isSelected ? 'ring-4 ring-orange-500 ring-inset' : ''}`}
       style={{
         left: item.x,
         top: item.y,
         width: item.width,
         height: item.height,
         transform: isDragging ? 'scale(1.05)' : 'scale(1)',
+        outline: isHovered && !isSelected ? '4px solid rgba(255, 255, 255, 0.5)' : 'none',
+        outlineOffset: '-4px',
         ...neonGlowStyle
       }}
       onMouseDown={handleMouseDown}

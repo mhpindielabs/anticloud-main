@@ -35,6 +35,7 @@ interface BoardCanvasProps {
   handleAddConnection: (fromId: string, toId: string) => void;
   handleRemoveConnection: (connectionId: string) => void;
   setHoveredItemId: (id: string | null) => void;
+  hoveredItemId: string | null;
 }
 
 const BoardCanvas: React.FC<BoardCanvasProps> = ({
@@ -67,7 +68,8 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
   setConnectionPointerCoord,
   handleAddConnection,
   handleRemoveConnection,
-  setHoveredItemId
+  setHoveredItemId,
+  hoveredItemId
 }) => {
   return (
     <div
@@ -214,6 +216,7 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
               setConnectionPointerCoord(null);
             }}
             setHoveredItemId={setHoveredItemId}
+            isHovered={item.id === hoveredItemId}
           />
         ))}
         {selectionRect && (
