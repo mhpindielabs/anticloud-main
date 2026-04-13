@@ -249,7 +249,7 @@ const App: React.FC = () => {
         (document.activeElement as HTMLElement)?.isContentEditable
       ) return;
 
-      if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (e.key === 'Delete') {
         if (hoveredItemId) {
           e.preventDefault();
           handleDeleteItem(hoveredItemId, setSelectedItemIds, setSelectedItemId);
