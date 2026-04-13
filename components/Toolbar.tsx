@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { 
   PlusIcon, TitleIcon, TextboxIcon, PixelIcon, SpriteIcon, SparklesIcon, 
   MusicIcon, LayersIcon, SettingsIcon, GridIcon, PaletteIcon, CameraIcon, 
@@ -107,7 +107,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   );
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-12 bg-black/40 backdrop-blur-md border-b-4 border-slate-800 flex items-center px-4 gap-2 z-[1000]">
+    <div ref={toolbarRef} className="fixed top-0 left-0 right-0 h-12 bg-black/40 backdrop-blur-md border-b-4 border-slate-800 flex items-center px-4 gap-2 z-[1000]">
       {/* Pizarra */}
       <div className="relative h-full flex items-center">
         <button 
