@@ -623,7 +623,7 @@ const App: React.FC = () => {
             handleAddItem(item.type, item.imageUrl, { ...rest });
             setActiveModal(null);
           }}
-          onToggleInventory={toggleInventory}
+          onRemoveItem={(id) => setInventory(prev => prev.filter(i => i.id !== id))}
         />
       )}
 
