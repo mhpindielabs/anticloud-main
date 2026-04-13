@@ -615,7 +615,8 @@ const App: React.FC = () => {
           inventory={inventory}
           onClose={() => setActiveModal(null)}
           onAddItem={(item) => {
-            handleAddItem(item.type, item.content, activeBoard.width, activeBoard.height);
+            const { id, ...rest } = item;
+            handleAddItem(item.type, item.imageUrl, { ...rest });
             setActiveModal(null);
           }}
           onRemoveItem={(id) => setInventory(prev => prev.filter(i => i.id !== id))}

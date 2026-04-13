@@ -1,2 +1,2 @@
-- Eliminar boton con suprm.
+- Hotkeys básicas con la caja.
 - 

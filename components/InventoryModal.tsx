@@ -40,16 +40,16 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                   className="pixel-panel p-2 bg-slate-800/50 hover:bg-slate-700/50 transition-colors group relative"
                 >
                   <div className="aspect-square flex items-center justify-center bg-slate-900/50 rounded p-2 mb-2">
-                    {item.type === 'pixel' || item.type === 'sprite' ? (
+                    {item.imageUrl ? (
                       <img 
-                        src={item.content} 
+                        src={item.imageUrl} 
                         alt="Item" 
                         className="max-w-full max-h-full object-contain pixelated"
                         referrerPolicy="no-referrer"
                       />
                     ) : (
                       <div className="text-[10px] text-white/70 overflow-hidden text-center">
-                        {item.content}
+                        {item.text || item.type}
                       </div>
                     )}
                   </div>
