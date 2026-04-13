@@ -52,7 +52,7 @@ export interface BoardItem {
   glitch?: boolean;
   rainbow?: boolean;
   scanlines?: boolean;
-  pixelate?: boolean;
+  terminalScan?: boolean;
   shake?: boolean;
   pulse?: boolean;
   blur?: boolean;

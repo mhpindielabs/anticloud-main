@@ -136,7 +136,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
 
     e.preventDefault();
     const boardRect = boardRef.current.getBoundingClientRect();
-    
+
     let currentRight = (e.clientX - boardRect.left) / zoom;
     let currentBottom = (e.clientY - boardRect.top) / zoom;
 
@@ -573,7 +573,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     item.glitch ? 'effect-glitch' : '',
     item.rainbow ? 'effect-rainbow' : '',
     item.scanlines ? 'effect-scanlines' : '',
-    item.pixelate ? 'effect-pixelate' : '',
+    item.terminalScan ? 'effect-terminal-scan' : '',
     item.shake ? 'effect-shake' : '',
     item.pulse ? 'effect-pulse' : '',
     item.blur ? 'effect-blur' : '',
