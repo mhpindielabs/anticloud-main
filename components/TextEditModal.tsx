@@ -567,13 +567,8 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
             </div>
           ) : activeTab === 'anim' ? (
             <div className="flex flex-col gap-6 p-4 pixel-panel bg-black/40 border-2 border-violet-500/30 animate-in fade-in zoom-in-95 duration-300 min-h-[450px]">
-              <div className="flex flex-col gap-2 items-center">
-                <h4 className="text-xl font-bold text-violet-400 uppercase tracking-widest" style={{ textShadow: '0 0 10px rgba(167, 139, 250, 0.5)' }}>Línea de Tiempo Rítmica</h4>
-                <p className="text-[10px] opacity-60 uppercase">Gestiona la secuencia de colores de la animación</p>
-              </div>
-
               {/* FILMSTRIP / TIMELINE */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 mt-2">
                 <div className="flex justify-between items-center px-1">
                   <label className="text-xs uppercase opacity-70 font-mono">Secuencia de Cuadros (Frames)</label>
                   <button 
