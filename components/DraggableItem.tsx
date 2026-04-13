@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { BoardItem, ItemType } from '../types';
-import { DeleteIcon, EditIcon, DuplicateIcon, SendToBackIcon, DpadUpIcon, DpadDownIcon, DpadLeftIcon, DpadRightIcon, PlayIcon, PauseIcon, ResetIcon, CopyIcon, PasteIcon, DownloadIcon, FileIcon, LinkIcon } from './Icons';
+import { DeleteIcon, EditIcon, DuplicateIcon, SendToBackIcon, DpadUpIcon, DpadDownIcon, DpadLeftIcon, DpadRightIcon, PlayIcon, PauseIcon, ResetIcon, CopyIcon, PasteIcon, DownloadIcon, FileIcon, LinkIcon, CheckboxIcon } from './Icons';
 
 interface DraggableItemProps {
   item: BoardItem;
@@ -38,6 +38,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const [isEditingText, setIsEditingText] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDraggingText, setIsDraggingText] = useState(false);
+  const [wasSaved, setWasSaved] = useState(false);
   const textEditRef = useRef<HTMLParagraphElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -770,8 +771,16 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
               <LinkIcon />
             </button>
           )}
-          <button onClick={() => onSaveToInventory(item)} className="pixel-button p-1 bg-amber-600 hover:bg-amber-500" title="Guardar en Inventario">
-            <FileIcon />
+          <button 
+            onClick={() => {
+              onSaveToInventory(item);
+              setWasSaved(true);
+              setTimeout(() => setWasSaved(false), 2000);
+            }} 
+            className={`pixel-button p-1 transition-all duration-300 ${wasSaved ? 'bg-green-600 scale-110' : 'bg-amber-600 hover:bg-amber-500'}`}
+            title={wasSaved ? "¡Guardado!" : "Guardar en Inventario"}
+          >
+            {wasSaved ? <CheckboxIcon /> : <FileIcon />}
           </button>
           <button onClick={() => onDelete(item.id)} className="pixel-button p-1 bg-red-700 hover:bg-red-600" title="Eliminar Elemento">
             <DeleteIcon />
