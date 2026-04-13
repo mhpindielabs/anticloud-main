@@ -117,7 +117,7 @@ const App: React.FC = () => {
   };
 
   const {
-    handleAddItem, handleAddCounter, handleAddTimer, handleAddFile, handleAddCheckbox, handleAddPlainText, handleBatchAddItems, handleDuplicateSelected, handleDeleteSelected, handleCopySelected,
+    handleAddItem, handleAddCounter, handleAddTimer, handleAddFile, handleAddCheckbox, handleAddPlainText, handleAddBox, handleBatchAddItems, handleDuplicateSelected, handleDeleteSelected, handleCopySelected,
     handlePaste, handleBackgroundFileChange, handleSaveAssetImages,
     handleScreenshot, handleStartEditItem
   } = useBoardActions({
@@ -198,13 +198,17 @@ const App: React.FC = () => {
     }
   }, [tutorialStep, isTutorialActive, handleCategoryEnter, handleCategoryLeave]);
 
-  // Ctrl mantenido = cuadrícula visible; al soltar = oculta
+  // Ctrl mantenido invierte el estado de la cuadrícula; al soltar, vuelve al original
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Control') setIsGridVisible(true);
+      if (e.key === 'Control' && !e.repeat) {
+        setIsGridVisible(prev => !prev);
+      }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Control') setIsGridVisible(false);
+      if (e.key === 'Control') {
+        setIsGridVisible(prev => !prev);
+      }
     };
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('keyup', handleKeyUp);
@@ -336,6 +340,7 @@ const App: React.FC = () => {
         handleAddFile={handleAddFile}
         handleAddCheckbox={handleAddCheckbox}
         handleAddPlainText={handleAddPlainText}
+        handleAddBox={handleAddBox}
         setIsMobileMode={setIsMobileMode}
         handleStartTutorial={handleStartTutorial}
         handleExportToDisk={handleExportToDisk}

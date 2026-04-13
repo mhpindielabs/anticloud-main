@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { ItemType, BoardItem, Board, TitleCollectionKey, TextboxCollectionKey } from '../types';
-import { FONT_FACES, GRID_SIZE, DEFAULT_TEXTBOX_IMAGE_URLS } from '../constants';
+import { FONT_FACES, GRID_SIZE, DEFAULT_TEXTBOX_IMAGE_URLS, DEFAULT_BOX_IMAGE_URL, DEFAULT_BOX_BORDER_SLICE } from '../constants';
 import { createNewBoard } from '../utils/boardUtils';
 import { captureBoardToCanvas } from '../utils/canvasUtils';
 
@@ -107,7 +107,7 @@ export const useBoardActions = ({
         fileContent: type === ItemType.File ? '' : undefined,
         checked: type === ItemType.Checkbox ? false : undefined,
         textColor: type === ItemType.PlainText ? '#FFFFFF' : '#000000',
-        fontFamily: (type === ItemType.Title || type === ItemType.Textbox || type === ItemType.Counter || type === ItemType.Timer || type === ItemType.PlainText) ? FONT_FACES[1] : FONT_FACES[0],
+        fontFamily: (type === ItemType.Title || type === ItemType.Textbox || type === ItemType.Counter || type === ItemType.Timer || type === ItemType.PlainText || type === ItemType.Box) ? FONT_FACES[1] : FONT_FACES[0],
         fontSize: 24,
         textShadow: type !== ItemType.PlainText,
         textShadowColor: '#FFFFFF',
@@ -350,6 +350,15 @@ export const useBoardActions = ({
     setActiveModal('addPlainText');
   }, [setActiveModal]);
 
+  const handleAddBox = useCallback(() => {
+    handleAddItem(ItemType.Box, DEFAULT_BOX_IMAGE_URL, {
+      borderSlice: DEFAULT_BOX_BORDER_SLICE,
+      width: 200,
+      height: 80,
+      text: '¡Edítame!',
+    });
+  }, [handleAddItem]);
+
   return {
     handleAddItem,
     handleAddCounter,
@@ -357,6 +366,7 @@ export const useBoardActions = ({
     handleAddFile,
     handleAddCheckbox,
     handleAddPlainText,
+    handleAddBox,
     handleBatchAddItems,
     handleDuplicateSelected,
     handleDeleteSelected,

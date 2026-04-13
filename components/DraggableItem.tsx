@@ -26,8 +26,8 @@ interface DraggableItemProps {
 const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onSaveToInventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
   // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
   const MARGENES_TEXTO = {
-    izquierdo: 13,
-    derecho: 13,
+    izquierdo: 15,
+    derecho: 7,
     arriba: 13,
     abajo: 20
   };
@@ -35,12 +35,15 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const [isDragging, setIsDragging] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(item.imageUrl);
   const [isEditingText, setIsEditingText] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isDraggingText, setIsDraggingText] = useState(false);
   const textEditRef = useRef<HTMLParagraphElement>(null);
   const dragRef = useRef<HTMLDivElement>(null);
   const offsetRef = useRef({ x: 0, y: 0 });
   const moveTimeoutRef = useRef<number | null>(null);
   const moveIntervalRef = useRef<number | null>(null);
   const itemRef = useRef(item);
+  const lastRightClickRef = useRef<number>(0);
 
   const textDragRef = useRef<{ isDragging: boolean; startX: number; startY: number; initialOffsetX: number; initialOffsetY: number; el: HTMLElement | null }>({
     isDragging: false, startX: 0, startY: 0, initialOffsetX: 0, initialOffsetY: 0, el: null
@@ -48,7 +51,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
 
   const handleTextMouseMove = useCallback((e: MouseEvent) => {
     const state = textDragRef.current;
-    if (!state.isDragging || !state.el) return;
+    if (!isDraggingText || !state.el) return;
 
     // Obtener las dimensiones reales del texto contenido
     const contentNode = state.el.firstElementChild as HTMLElement;
@@ -77,13 +80,13 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     }
 
     state.el.style.transform = `translate(${newX}px, ${newY}px)`;
-  }, [item.width, item.height, zoom, snapToGrid, gridSize]);
+  }, [item.width, item.height, zoom, snapToGrid, gridSize, isDraggingText]);
 
   const handleTextMouseUp = useCallback((e: MouseEvent) => {
     const state = textDragRef.current;
-    if (!state.isDragging || !state.el) return;
+    if (!isDraggingText || !state.el) return;
 
-    state.isDragging = false;
+    setIsDraggingText(false);
 
     // Obtener las dimensiones reales del texto contenido
     const contentNode = state.el.firstElementChild as HTMLElement;
@@ -115,10 +118,81 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       textOffsetX: newX,
       textOffsetY: newY
     });
+  }, [isDraggingText, item.width, item.height, zoom, onUpdate, snapToGrid, gridSize]);
 
-    document.removeEventListener('mousemove', handleTextMouseMove);
-    document.removeEventListener('mouseup', handleTextMouseUp);
-  }, [item.width, item.height, zoom, onUpdate, snapToGrid, gridSize]);
+  useEffect(() => {
+    if (isDraggingText) {
+      document.addEventListener('mousemove', handleTextMouseMove);
+      document.addEventListener('mouseup', handleTextMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleTextMouseMove);
+      document.removeEventListener('mouseup', handleTextMouseUp);
+    };
+  }, [isDraggingText, handleTextMouseMove, handleTextMouseUp]);
+
+  const handleResizeMouseMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !boardRef.current) return;
+
+    e.preventDefault();
+    const boardRect = boardRef.current.getBoundingClientRect();
+    
+    let currentRight = (e.clientX - boardRect.left) / zoom;
+    let currentBottom = (e.clientY - boardRect.top) / zoom;
+
+    let newWidth = currentRight - item.x;
+    let newHeight = currentBottom - item.y;
+
+    if (snapToGrid) {
+      // Snap the absolute edge position to the grid
+      const snappedRight = Math.round(currentRight / gridSize) * gridSize;
+      const snappedBottom = Math.round(currentBottom / gridSize) * gridSize;
+      newWidth = snappedRight - item.x;
+      newHeight = snappedBottom - item.y;
+    }
+
+    newWidth = Math.max(40, newWidth);
+    newHeight = Math.max(40, newHeight);
+
+    if (dragRef.current) {
+      dragRef.current.style.width = `${newWidth}px`;
+      dragRef.current.style.height = `${newHeight}px`;
+    }
+  }, [isResizing, zoom, gridSize, snapToGrid, item.x, item.y]);
+
+  const handleResizeMouseUp = useCallback((e: MouseEvent) => {
+    if (!isResizing || !boardRef.current) return;
+
+    setIsResizing(false);
+    const boardRect = boardRef.current.getBoundingClientRect();
+    let finalWidth = (e.clientX - boardRect.left) / zoom - item.x;
+    let finalHeight = (e.clientY - boardRect.top) / zoom - item.y;
+
+    if (snapToGrid) {
+      const currentRight = (e.clientX - boardRect.left) / zoom;
+      const currentBottom = (e.clientY - boardRect.top) / zoom;
+      const snappedRight = Math.round(currentRight / gridSize) * gridSize;
+      const snappedBottom = Math.round(currentBottom / gridSize) * gridSize;
+      finalWidth = snappedRight - item.x;
+      finalHeight = snappedBottom - item.y;
+    }
+
+    finalWidth = Math.max(40, finalWidth);
+    finalHeight = Math.max(40, finalHeight);
+
+    onUpdate({ ...itemRef.current, width: finalWidth, height: finalHeight });
+  }, [isResizing, zoom, gridSize, snapToGrid, item.x, item.y, onUpdate]);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMouseMove);
+      document.addEventListener('mouseup', handleResizeMouseUp);
+    }
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMouseMove);
+      document.removeEventListener('mouseup', handleResizeMouseUp);
+    };
+  }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
   useEffect(() => {
     itemRef.current = item;
@@ -135,6 +209,19 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // Checkear si es click derecho (2) para mover el texto libremente
     if (e.button === 2) {
+      const now = Date.now();
+      if (now - lastRightClickRef.current < 300) {
+        // DOBLE CLICK DERECHO DETECTADO: Centrar texto y cancelar arrastre
+        e.stopPropagation();
+        e.preventDefault();
+        onUpdate({ ...itemRef.current, textOffsetX: 0, textOffsetY: 0 });
+        textDragRef.current.isDragging = false;
+        setIsDraggingText(false);
+        lastRightClickRef.current = 0;
+        return;
+      }
+      lastRightClickRef.current = now;
+
       e.stopPropagation();
       e.preventDefault();
       const textContainer = dragRef.current?.querySelector('.text-container-move') as HTMLElement;
@@ -147,8 +234,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
           initialOffsetY: item.textOffsetY || 0,
           el: textContainer
         };
-        document.addEventListener('mousemove', handleTextMouseMove);
-        document.addEventListener('mouseup', handleTextMouseUp);
+        setIsDraggingText(true);
       }
       return;
     }
@@ -411,12 +497,13 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     }
   }, [item.fileContent, item.fileName]);
 
-  const isTextEditable = item.type === ItemType.Title || item.type === ItemType.Textbox || item.type === ItemType.SuperTitle || item.type === ItemType.Counter || item.type === ItemType.Timer || item.type === ItemType.File || item.type === ItemType.Checkbox || item.type === ItemType.PlainText;
+  const isTextEditable = item.type === ItemType.Title || item.type === ItemType.Textbox || item.type === ItemType.SuperTitle || item.type === ItemType.Counter || item.type === ItemType.Timer || item.type === ItemType.File || item.type === ItemType.Checkbox || item.type === ItemType.PlainText || item.type === ItemType.Box;
   const isMusicItem = item.type === ItemType.Music;
   const isCounterItem = item.type === ItemType.Counter;
   const isTimerItem = item.type === ItemType.Timer;
   const isCheckboxItem = item.type === ItemType.Checkbox;
   const isPlainTextItem = item.type === ItemType.PlainText;
+  const isBoxItem = item.type === ItemType.Box;
 
   const handleCheckboxToggle = useCallback(() => {
     onUpdate({ ...item, checked: !item.checked });
@@ -506,6 +593,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
         ...neonGlowStyle
       }}
       onMouseDown={handleMouseDown}
+      onContextMenu={(e) => e.preventDefault()}
       onDoubleClick={(e) => {
         if (!(e.target as HTMLElement).closest('button')) {
           setIsEditingText(true);
@@ -526,7 +614,26 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       }}
     >
       <div className={`relative w-full h-full bg-cover bg-center select-none ${isDragging ? 'cursor-grabbing' : ''} ${effectClasses}`}>
-        {!isPlainTextItem && <img src={currentImageUrl} alt="draggable item" className="w-full h-full pointer-events-none" referrerPolicy="no-referrer" />}
+        {isBoxItem ? (
+          // Renderizado 9-slice con border-image CSS
+          (() => {
+            const s = item.borderSlice || { top: 18, right: 31, bottom: 24, left: 28 };
+            return (
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  borderStyle: 'solid',
+                  borderWidth: `${s.top}px ${s.right}px ${s.bottom}px ${s.left}px`,
+                  borderImage: `url("${item.imageUrl}") ${s.top} ${s.right} ${s.bottom} ${s.left} fill stretch`,
+                  imageRendering: 'pixelated',
+                  filter: item.boxFilter || 'none',
+                }}
+              />
+            );
+          })()
+        ) : (
+          !isPlainTextItem && <img src={currentImageUrl} alt="draggable item" className="w-full h-full pointer-events-none" referrerPolicy="no-referrer" />
+        )}
         <div
           className={`text-container-move absolute inset-0 p-4 flex items-center justify-center pointer-events-none`}
           style={{
@@ -608,6 +715,19 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
             )}
           </div>
         </div>
+        {/* Resize Handle */}
+        <div
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setIsResizing(true);
+          }}
+          className={`absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-20 transition-opacity ${controlClasses}`}
+          style={{
+            background: 'linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.4) 50%)',
+            borderBottomRightRadius: '2px'
+          }}
+        />
       </div>
 
       <div className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex items-center gap-1 transition-opacity z-10 pointer-events-auto flex-wrap justify-center ${controlClasses}`}>

@@ -19,6 +19,10 @@ export const DEFAULT_TEXTBOX_IMAGE_URLS: { [key in 'x1' | 'x4' | 'x16']: string 
 
 export const ASSET_SLOTS = 18;
 
+// Sprite base y valores de 9-slice para el tipo Caja.
+export const DEFAULT_BOX_IMAGE_URL = '/assets/sprites/box.png';
+export const DEFAULT_BOX_BORDER_SLICE = { top: 18, right: 31, bottom: 24, left: 28 };
+
 // Available font faces for text items.
 export const FONT_FACES = [
   "'VT323', monospace",

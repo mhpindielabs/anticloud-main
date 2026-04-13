@@ -10,6 +10,7 @@ export enum ItemType {
   File = 'FILE',
   Checkbox = 'CHECKBOX',
   PlainText = 'PLAIN_TEXT',
+  Box = 'BOX',
 }
 
 export interface TextFragment {
@@ -57,6 +58,8 @@ export interface BoardItem {
   blur?: boolean;
   checked?: boolean;
   groupId?: string;
+  borderSlice?: { top: number; right: number; bottom: number; left: number };
+  boxFilter?: string;
 }
 
 export interface Connection {

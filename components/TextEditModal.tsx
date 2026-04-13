@@ -32,6 +32,27 @@ const BASIC_COLORS = [
   '#FF77A8', '#7E2553', '#AB5236', '#1D2B53', '#008751',
 ];
 
+// Precise mapping of PICO-8 colors to CSS filters starting from the Blue/Cyan box sprite (#32A1D7)
+const BOX_PALETTE_CONFIG = [
+  { hex: '#FFFFFF', filter: 'brightness(0.5) invert(1) grayscale(1) contrast(1.5)' }, // Inverted White (User liked this)
+  { hex: '#FFF1E8', filter: 'grayscale(1) brightness(1.8) sepia(0.3) saturate(1)' }, // Natural Cream
+  { hex: '#FFCCAA', filter: 'sepia(1) hue-rotate(340deg) saturate(1.5) brightness(1.5)' }, // Warm Creamy Peach
+  { hex: '#C2C3C7', filter: 'grayscale(1) brightness(1.3)' },
+  { hex: '#5F574F', filter: 'grayscale(1) brightness(0.6)' },
+  { hex: '#000000', filter: 'brightness(1.9) invert(1) grayscale(1) contrast(1.2)' }, // Corrected Black body with light details
+  { hex: '#FF004D', filter: 'hue-rotate(142deg) saturate(2.5) brightness(0.8)' },
+  { hex: '#FFA300', filter: 'hue-rotate(195deg) saturate(2.5) brightness(1.1)' },
+  { hex: '#FFEC27', filter: 'hue-rotate(215deg) saturate(2.5) brightness(1.2)' },
+  { hex: '#00E436', filter: 'hue-rotate(294deg) saturate(2.5) brightness(0.9)' },
+  { hex: '#29ADFF', filter: 'none' }, // Original Blue (Default Sprite Color)
+  { hex: '#83769C', filter: 'hue-rotate(58deg) saturate(0.5) brightness(0.9)' },
+  { hex: '#FF77A8', filter: 'hue-rotate(135deg) saturate(1.8) brightness(1.2)' },
+  { hex: '#7E2553', filter: 'hue-rotate(125deg) saturate(1.5) brightness(0.5)' },
+  { hex: '#AB5236', filter: 'hue-rotate(175deg) saturate(1.5) brightness(0.7)' },
+  { hex: '#1D2B53', filter: 'hue-rotate(25deg) saturate(1.2) brightness(0.3)' },
+  { hex: '#008751', filter: 'hue-rotate(316deg) saturate(1.5) brightness(0.5)' },
+];
+
 const TextEditModal: React.FC<TextEditModalProps> = ({
   item,
   onSave,
@@ -233,7 +254,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                         onClick={() => setActiveTab('style')} 
                         className={`pixel-button px-3 py-1 text-sm ${activeTab === 'style' ? 'pixel-button-active' : ''}`}
                     >
-                        Marco
+                        Hue
                     </button>
                     <button 
                         onClick={() => setActiveTab('effects')} 
@@ -259,7 +280,12 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
             }`}>
                 <div className="absolute inset-0 flex items-center justify-center">
                     {!editedItem.type || editedItem.type !== ItemType.PlainText ? (
-                        <img src={editedItem.imageUrl} alt="" className="w-full h-full object-contain pointer-events-none" referrerPolicy="no-referrer" />
+                        <div 
+                          className="w-full h-full relative flex items-center justify-center"
+                          style={{ filter: editedItem.boxFilter || 'none' }}
+                        >
+                          <img src={editedItem.imageUrl} alt="" className="w-full h-full object-contain pointer-events-none" referrerPolicy="no-referrer" />
+                        </div>
                     ) : null}
                 </div>
                 <div 
@@ -305,6 +331,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
 
             {activeTab === 'style' ? (
                 <div className="flex flex-col gap-3">
+                    {/* SECCIÓN COMENTADA POR SEGURIDAD - SISTEMA DE MARCOS ANTIGUO
                     <div className="flex flex-wrap gap-2 justify-center">
                         {collectionKeys.map(key => (
                             <button
@@ -326,6 +353,24 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                                 >
                                     <img src={img} alt="" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
                                 </button>
+                            ))}
+                        </div>
+                    </div>
+                    */}
+
+                    <div className="flex flex-col gap-2 p-2 pixel-panel bg-black/30">
+                        <label className="text-sm uppercase opacity-70 text-violet-400">Color de la Caja (Paleta Exacta)</label>
+                        <div className="flex flex-wrap gap-1.5 justify-center py-2 bg-black/20 rounded">
+                            {BOX_PALETTE_CONFIG.map((opt, idx) => (
+                                <button
+                                    key={`box-color-${opt.hex}-${idx}`}
+                                    onClick={() => setEditedItem(prev => ({ ...prev, boxFilter: opt.filter }))}
+                                    className={`w-10 h-10 pixel-panel border-2 transition-all ${(editedItem.boxFilter || 'none') === opt.filter ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'border-white/10 opacity-70 hover:opacity-100 hover:scale-105'}`}
+                                    style={{ 
+                                        backgroundColor: opt.hex,
+                                    }}
+                                    title={opt.hex}
+                                />
                             ))}
                         </div>
                     </div>

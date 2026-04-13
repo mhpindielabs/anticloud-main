@@ -42,6 +42,7 @@ interface ToolbarProps {
   handleAddFile: () => void;
   handleAddCheckbox: () => void;
   handleAddPlainText: () => void;
+  handleAddBox: () => void;
   setIsMobileMode: React.Dispatch<React.SetStateAction<boolean>>;
   handleStartTutorial: () => void;
   handleExportToDisk: () => void;
@@ -80,6 +81,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   handleAddFile,
   handleAddCheckbox,
   handleAddPlainText,
+  handleAddBox,
   setIsMobileMode,
   handleStartTutorial,
   handleExportToDisk,
@@ -158,11 +160,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
         </button>
         {activeCategory === 'add' && (
           <div className="absolute top-full left-0 mt-1 pixel-panel min-w-[220px] flex flex-col p-1 bg-slate-900 shadow-2xl max-h-[70vh] overflow-y-auto">
-            <MenuItem icon={<TitleIcon />} label="Título" onClick={() => setActiveModal('addTitle')} color="bg-blue-600" />
-            <MenuItem icon={<TextboxIcon />} label="Caja de Texto" onClick={() => setActiveModal('addTextbox')} color="bg-cyan-600" />
+            <MenuItem icon={<TextboxIcon />} label="Caja (9-Slice)" onClick={handleAddBox} color="bg-violet-600" />
+            <MenuItem icon={<SparklesIcon />} label="SuperTitle" onClick={() => setActiveModal('addSuperTitle')} color="bg-pink-600" />
+            <div className="h-0.5 bg-slate-800 my-1" />
             <MenuItem icon={<PixelIcon />} label="Ilustración" onClick={() => setActiveModal('addPixel')} color="bg-yellow-500" />
             <MenuItem icon={<SpriteIcon />} label="Sprite" onClick={() => setActiveModal('addSprite')} color="bg-green-600" />
-            <MenuItem icon={<SparklesIcon />} label="SuperTitle" onClick={() => setActiveModal('addSuperTitle')} color="bg-pink-600" />
             <div className="h-0.5 bg-slate-800 my-1" />
             <MenuItem icon={<CounterIcon />} label="Contador" onClick={handleAddCounter} color="bg-rose-600" />
             <MenuItem icon={<TimerIcon />} label="Temporizador" onClick={handleAddTimer} color="bg-orange-600" />
