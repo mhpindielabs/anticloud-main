@@ -61,7 +61,8 @@ const App: React.FC = () => {
     activeThemeIndex, setActiveThemeIndex, isTutorialActive, setIsTutorialActive,
     tutorialStep, setTutorialStep,
     connectingFromId, setConnectingFromId,
-    connectionPointerCoord, setConnectionPointerCoord
+    connectionPointerCoord, setConnectionPointerCoord,
+    hoveredItemId, setHoveredItemId
   } = useUIState();
 
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -238,6 +239,23 @@ const App: React.FC = () => {
       return [...prev, { ...item }];
     });
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        document.activeElement?.tagName === 'INPUT' || 
+        document.activeElement?.tagName === 'TEXTAREA' ||
+        (document.activeElement as HTMLElement)?.isContentEditable
+      ) return;
+
+      if ((e.key === 'Delete' || e.key === 'Backspace') && hoveredItemId) {
+        handleDeleteItem(hoveredItemId, setSelectedItemIds, setSelectedItemId);
+        setHoveredItemId(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hoveredItemId, handleDeleteItem, setSelectedItemIds, setSelectedItemId, setHoveredItemId]);
 
   return (
     <div

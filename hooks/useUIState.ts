@@ -45,6 +45,7 @@ export const useUIState = () => {
   const [tutorialStep, setTutorialStep] = useState(0);
   const [connectingFromId, setConnectingFromId] = useState<string | null>(null);
   const [connectionPointerCoord, setConnectionPointerCoord] = useState<{x: number; y: number} | null>(null);
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   const categoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -122,6 +123,7 @@ export const useUIState = () => {
     isTutorialActive, setIsTutorialActive,
     tutorialStep, setTutorialStep,
     connectingFromId, setConnectingFromId,
-    connectionPointerCoord, setConnectionPointerCoord
+    connectionPointerCoord, setConnectionPointerCoord,
+    hoveredItemId, setHoveredItemId
   };
 };

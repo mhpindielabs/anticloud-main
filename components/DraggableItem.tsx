@@ -22,9 +22,10 @@ interface DraggableItemProps {
   connectingFromId?: string | null;
   onConnectStart?: (id: string) => void;
   onConnectComplete?: (id: string) => void;
+  setHoveredItemId: (id: string | null) => void;
 }
 
-const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete }) => {
+const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete, setHoveredItemId }) => {
   // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
   const MARGENES_TEXTO = {
     izquierdo: 15,
@@ -597,7 +598,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     <div
       ref={dragRef}
       data-item-id={item.id}
-      className={`absolute group cursor-grab ${isSelected ? 'ring-4 ring-orange-500 ring-inset' : ''}`}
+      className={`absolute group cursor-grab transition-shadow duration-200 ${isSelected ? 'ring-4 ring-orange-500 ring-inset' : 'hover:ring-2 hover:ring-white/30'}`}
       style={{
         left: item.x,
         top: item.y,
@@ -607,6 +608,8 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
         ...neonGlowStyle
       }}
       onMouseDown={handleMouseDown}
+      onMouseEnter={() => setHoveredItemId(item.id)}
+      onMouseLeave={() => setHoveredItemId(null)}
       onContextMenu={(e) => e.preventDefault()}
       onDoubleClick={(e) => {
         if (!(e.target as HTMLElement).closest('button')) {
