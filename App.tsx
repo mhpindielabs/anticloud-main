@@ -2,7 +2,6 @@ import React, { useRef, useEffect } from 'react';
 import { ItemType, TitleCollectionKey, TextboxCollectionKey, AssetCategory } from './types';
 import { FONT_FACES, THEMES } from './constants';
 import AddElementModal from './components/AddElementModal';
-import AddSuperTitleModal from './components/AddSuperTitleModal';
 import AddChordModal from './components/AddChordModal';
 import AddHarmonizationModal from './components/AddHarmonizationModal';
 import EditImagesModal from './components/EditImagesModal';
@@ -494,17 +493,6 @@ const App: React.FC = () => {
           showSizeMultiplier={true}
           sizeMultiplier={spriteSizeMultiplier}
           onSizeMultiplierChange={setSpriteSizeMultiplier}
-        />
-      )}
-
-      {activeModal === 'addSuperTitle' && (
-        <AddSuperTitleModal
-          collections={textboxImages}
-          onClose={() => setActiveModal(null)}
-          onAdd={(img1, img2, interval) => {
-            handleAddItemWithLog(ItemType.SuperTitle, img1, { secondaryImageUrl: img2, blinkInterval: interval });
-            setActiveModal(null);
-          }}
         />
       )}
 

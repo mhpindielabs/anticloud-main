@@ -256,7 +256,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
     : 'none';
 
   const isTitle = item.type === ItemType.Title;
-  const isNineSliceItem = item.type === ItemType.Box || item.type === ItemType.SuperTitle;
+  const isNineSliceItem = item.type === ItemType.Box;
   const collections = isTitle ? titleImages : textboxImages;
   const collectionKeys = isTitle ? ['x1/2', 'x1', 'x2', 'x3', 'x4'] : ['x1', 'x4', 'x16'];
 
@@ -958,37 +958,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
               </div>
             )}
-            {editedItem.type === ItemType.SuperTitle && (
-              <div className="flex flex-col gap-3 col-span-2 border-t border-white/10 pt-2">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm uppercase opacity-70">Milisegundos ({editedItem.blinkInterval}ms)</label>
-                  <input
-                    type="range"
-                    name="blinkInterval"
-                    min="50"
-                    max="2000"
-                    step="10"
-                    value={editedItem.blinkInterval || 500}
-                    onChange={handleInputChange}
-                    className="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm uppercase opacity-70">Beats Per Minute (BPM)</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      value={bpm}
-                      onChange={handleBpmChange}
-                      className="pixel-input text-lg w-24"
-                      min="30"
-                      max="1200"
-                    />
-                    <span className="text-xs opacity-50">Cambia cada {editedItem.blinkInterval}ms</span>
-                  </div>
-                </div>
-              </div>
-            )}
+
           </div>
         </div>
       </div>

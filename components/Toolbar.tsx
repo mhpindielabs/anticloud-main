@@ -168,7 +168,6 @@ const Toolbar: React.FC<ToolbarProps> = ({
           {activeCategory === 'add' && (
             <div className="absolute top-full left-0 mt-1 pixel-panel min-w-[220px] flex flex-col p-1 bg-slate-900 shadow-2xl max-h-[70vh] overflow-y-auto">
               <MenuItem icon={<TextboxIcon />} label="Caja (9-Slice)" onClick={handleAddBox} color="bg-violet-600" />
-              <MenuItem icon={<SparklesIcon />} label="SuperTitle" onClick={() => setActiveModal('addSuperTitle')} color="bg-pink-600" />
               <div className="h-0.5 bg-slate-800 my-1" />
               <MenuItem icon={<PixelIcon />} label="Ilustración" onClick={() => setActiveModal('addPixel')} color="bg-yellow-500" />
               <MenuItem icon={<SpriteIcon />} label="Sprite" onClick={() => setActiveModal('addSprite')} color="bg-green-600" />

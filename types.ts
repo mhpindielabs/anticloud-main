@@ -3,7 +3,6 @@ export enum ItemType {
   Textbox = 'TEXTBOX',
   Pixel = 'PIXEL',
   Sprite = 'SPRITE',
-  SuperTitle = 'SUPER_TITLE',
   Music = 'MUSIC',
   Counter = 'COUNTER',
   Timer = 'TIMER',

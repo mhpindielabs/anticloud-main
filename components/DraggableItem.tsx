@@ -522,15 +522,14 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     }
   }, [item.fileContent, item.fileName]);
 
-  const isTextEditable = item.type === ItemType.Title || item.type === ItemType.Textbox || item.type === ItemType.SuperTitle || item.type === ItemType.Counter || item.type === ItemType.Timer || item.type === ItemType.File || item.type === ItemType.Checkbox || item.type === ItemType.PlainText || item.type === ItemType.Box;
+  const isTextEditable = item.type === ItemType.Title || item.type === ItemType.Textbox || item.type === ItemType.Counter || item.type === ItemType.Timer || item.type === ItemType.File || item.type === ItemType.Checkbox || item.type === ItemType.PlainText || item.type === ItemType.Box;
   const isMusicItem = item.type === ItemType.Music;
   const isCounterItem = item.type === ItemType.Counter;
   const isTimerItem = item.type === ItemType.Timer;
   const isCheckboxItem = item.type === ItemType.Checkbox;
   const isPlainTextItem = item.type === ItemType.PlainText;
-  const isNineSliceItem = item.type === ItemType.Box || item.type === ItemType.SuperTitle;
+  const isNineSliceItem = item.type === ItemType.Box;
   const isBoxItem = item.type === ItemType.Box;
-  const isSuperTitleItem = item.type === ItemType.SuperTitle;
 
   const handleCheckboxToggle = useCallback(() => {
     onUpdate({ ...item, checked: !item.checked });
