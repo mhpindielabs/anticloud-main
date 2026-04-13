@@ -599,7 +599,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     <div
       ref={dragRef}
       data-item-id={item.id}
-      className={`absolute group cursor-grab transition-all duration-200 ${isSelected ? 'ring-4 ring-orange-500 ring-inset' : ''}`}
+      className={`absolute group cursor-grab ${isSelected ? 'ring-4 ring-orange-500 ring-inset' : ''}`}
       style={{
         left: item.x,
         top: item.y,
