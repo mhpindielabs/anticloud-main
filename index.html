@@ -398,6 +398,30 @@
       .tutorial-popover {
         animation: fadeIn 0.3s ease-out;
       }
+
+      /* CUSTOM PIXEL SCROLLBAR */
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #0d2b45;
+        border: 2px solid #203c56;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #fca311;
+        border: 2px solid #0d2b45;
+        box-shadow: inset 2px 2px 0px rgba(255,255,255,0.3);
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #ffb703;
+      }
+      
+      /* Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: #fca311 #0d2b45;
+      }
     </style>
   <script type="importmap">
 {

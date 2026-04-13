@@ -499,7 +499,7 @@ const App: React.FC = () => {
 
       {activeModal === 'addSuperTitle' && (
         <AddSuperTitleModal
-          collections={titleImages}
+          collections={textboxImages}
           onClose={() => setActiveModal(null)}
           onAdd={(img1, img2, interval) => {
             handleAddItemWithLog(ItemType.SuperTitle, img1, { secondaryImageUrl: img2, blinkInterval: interval });

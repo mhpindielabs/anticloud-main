@@ -1,0 +1,2 @@
+- Eliminar boton con suprm.
+- 

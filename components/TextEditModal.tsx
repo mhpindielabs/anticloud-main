@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BoardItem } from '../types';
 import Modal from './Modal';
 import CustomSelect from './CustomSelect';
@@ -64,9 +64,12 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
   textboxImages
 }) => {
   const [editedItem, setEditedItem] = useState<BoardItem>(item);
-  const [activeTab, setActiveTab] = useState<'text' | 'style' | 'effects'>('text');
+  const itemRef = useRef(item);
+  const [activeTab, setActiveTab] = useState<'text' | 'style' | 'effects' | 'anim'>('text');
   const [currentCollection, setCurrentCollection] = useState<string>('x1');
-  const [bpm, setBpm] = useState<number>(item.blinkInterval ? Math.round(60000 / item.blinkInterval) : 120);
+  const [bpm, setBpm] = useState<number>(Math.round(60000 / (item.blinkInterval || 500)));
+  const [selectedFrameIndex, setSelectedFrameIndex] = useState(0);
+  const [previewFrameIndex, setPreviewFrameIndex] = useState(0);
 
   useEffect(() => {
     setEditedItem(item);
@@ -74,6 +77,26 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
       setBpm(Math.round(60000 / item.blinkInterval));
     }
   }, [item]);
+
+  // MOTOR DE PREVISUALIZACIÓN RÍTMICA (ESTADOS)
+  useEffect(() => {
+    let sequence = editedItem.animationHueFilters || (editedItem.secondaryBoxFilter ? [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter] : []);
+
+    if (sequence.length > 1 && editedItem.blinkInterval) {
+      const intervalId = setInterval(() => {
+        setPreviewFrameIndex(prev => (prev + 1) % sequence.length);
+      }, editedItem.blinkInterval);
+      return () => clearInterval(intervalId);
+    } else {
+      setPreviewFrameIndex(0);
+    }
+  }, [editedItem.boxFilter, editedItem.secondaryBoxFilter, JSON.stringify(editedItem.animationHueFilters), editedItem.blinkInterval]);
+
+  // Filtro de previsualización derivado
+  const activePreviewSequence = editedItem.animationHueFilters || (editedItem.secondaryBoxFilter ? [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter] : []);
+  const activePreviewFilter = activePreviewSequence.length > 1 
+    ? activePreviewSequence[previewFrameIndex % activePreviewSequence.length] 
+    : (editedItem.boxFilter || 'none');
 
   const handleSave = () => {
     onSave(editedItem);
@@ -233,6 +256,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
     : 'none';
 
   const isTitle = item.type === ItemType.Title;
+  const isNineSliceItem = item.type === ItemType.Box || item.type === ItemType.SuperTitle;
   const collections = isTitle ? titleImages : textboxImages;
   const collectionKeys = isTitle ? ['x1/2', 'x1', 'x2', 'x3', 'x4'] : ['x1', 'x4', 'x16'];
 
@@ -262,6 +286,12 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
               >
                 Efectos
               </button>
+              <button
+                onClick={() => setActiveTab('anim')}
+                className={`pixel-button px-3 py-1 text-sm ${activeTab === 'anim' ? 'pixel-button-active' : ''}`}
+              >
+                Anim
+              </button>
             </div>
           </div>
 
@@ -281,10 +311,29 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="absolute inset-0 flex items-center justify-center">
                 {!editedItem.type || editedItem.type !== ItemType.PlainText ? (
                   <div
-                    className="w-full h-full relative flex items-center justify-center"
-                    style={{ filter: editedItem.boxFilter || 'none' }}
+                    className="w-full h-full relative"
+                    style={{ 
+                      filter: activePreviewFilter
+                    }}
                   >
-                    <img src={editedItem.imageUrl} alt="" className="w-full h-full object-contain pointer-events-none" referrerPolicy="no-referrer" />
+                    {isNineSliceItem ? (
+                      (() => {
+                        const s = editedItem.borderSlice || { top: 18, right: 31, bottom: 24, left: 28 };
+                        return (
+                          <div
+                            className="absolute inset-0"
+                            style={{
+                              borderStyle: 'solid',
+                              borderWidth: `${s.top}px ${s.right}px ${s.bottom}px ${s.left}px`,
+                              borderImage: `url("${editedItem.imageUrl}") ${s.top} ${s.right} ${s.bottom} ${s.left} fill stretch`,
+                              imageRendering: 'pixelated'
+                            }}
+                          />
+                        );
+                      })()
+                    ) : (
+                      <img src={editedItem.imageUrl} alt="" className="w-full h-full object-contain pointer-events-none" referrerPolicy="no-referrer" />
+                    )}
                   </div>
                 ) : null}
               </div>
@@ -328,6 +377,32 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* LED INDICATORS (RHYTHM FEEDBACK) */}
+            {(() => {
+              const sequence = editedItem.animationHueFilters || (editedItem.secondaryBoxFilter ? [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter] : []);
+              if (sequence.length <= 1) return null;
+              
+              return (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 bg-black/40 rounded-full border border-white/10 backdrop-blur-sm shadow-xl">
+                  {sequence.map((_, i) => {
+                    const isActive = previewFrameIndex === i;
+                    const isEditing = selectedFrameIndex === i;
+                    
+                    return (
+                      <div 
+                        key={`led-${i}`} 
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-150 ${
+                          isActive 
+                            ? 'bg-[#00ff00] shadow-[0_0_10px_#00ff00] opacity-100' 
+                            : 'bg-white/10 opacity-30'
+                        } ${isEditing ? 'ring-2 ring-white ring-offset-1 ring-offset-black/20 scale-110 z-10' : ''}`}
+                      />
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
 
           {activeTab === 'style' ? (
@@ -489,6 +564,130 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                   </label>
                 </div>
               </div>
+            </div>
+          ) : activeTab === 'anim' ? (
+            <div className="flex flex-col gap-6 p-4 pixel-panel bg-black/40 border-2 border-violet-500/30 animate-in fade-in zoom-in-95 duration-300 min-h-[450px]">
+              <div className="flex flex-col gap-2 items-center">
+                <h4 className="text-xl font-bold text-violet-400 uppercase tracking-widest" style={{ textShadow: '0 0 10px rgba(167, 139, 250, 0.5)' }}>Línea de Tiempo Rítmica</h4>
+                <p className="text-[10px] opacity-60 uppercase">Gestiona la secuencia de colores de la animación</p>
+              </div>
+
+              {/* FILMSTRIP / TIMELINE */}
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-xs uppercase opacity-70 font-mono">Secuencia de Cuadros (Frames)</label>
+                  <button 
+                    onClick={() => {
+                      const currentFilters = editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none'];
+                      const newFilters = [...currentFilters, currentFilters[currentFilters.length - 1]];
+                      setEditedItem(prev => ({ 
+                        ...prev, 
+                        animationHueFilters: newFilters, 
+                        secondaryBoxFilter: undefined,
+                        blinkInterval: prev.blinkInterval || 500 // Asegurar que el motor rítmico se active
+                      }));
+                      setSelectedFrameIndex(newFilters.length - 1);
+                    }}
+                    className="pixel-button px-3 py-1 text-[10px] bg-indigo-600 hover:bg-indigo-500"
+                  >
+                    + Añadir Frame
+                  </button>
+                </div>
+                
+                <div className="flex flex-wrap gap-4 p-3 bg-black/30 rounded-lg border border-white/5 overflow-y-auto max-h-[280px] min-h-[100px] justify-start content-start">
+                  {(editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none']).map((filter, idx) => {
+                    const isSequence = !!editedItem.animationHueFilters;
+                    const isSecondary = !isSequence && idx === 1 && editedItem.secondaryBoxFilter;
+                    const isActive = selectedFrameIndex === idx;
+                    
+                    return (
+                      <div key={`frame-${idx}`} className="relative group shrink-0">
+                        <button
+                          onClick={() => setSelectedFrameIndex(idx)}
+                          className={`w-16 h-10 relative pixel-panel border-2 transition-all ${isActive ? 'border-cyan-400 scale-110 z-10' : 'border-white/10 opacity-60 hover:opacity-100'}`}
+                        >
+                          <div className="absolute inset-0" style={{
+                            borderStyle: 'solid',
+                            borderWidth: '4px 6px 5px 6px',
+                            borderImage: `url("${editedItem.imageUrl}") 4 6 5 6 fill stretch`,
+                            filter: filter,
+                            imageRendering: 'pixelated'
+                          }} />
+                          <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono opacity-50">{idx + 1}</span>
+                        </button>
+                        
+                        {(editedItem.animationHueFilters?.length || 0) > 1 && (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const newFilters = [...(editedItem.animationHueFilters || [])];
+                              newFilters.splice(idx, 1);
+                              setEditedItem(prev => ({ ...prev, animationHueFilters: newFilters }));
+                              if (selectedFrameIndex >= newFilters.length) setSelectedFrameIndex(newFilters.length - 1);
+                            }}
+                            className="absolute -top-2 -right-2 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-[10px] border border-white opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* COLOR SELECTOR FOR ACTIVE FRAME */}
+              <div className="flex flex-col gap-2 animate-in slide-in-from-left-2 transition-all duration-300">
+                <div className="flex justify-between items-center px-1">
+                  <label className="text-xs uppercase opacity-70 font-mono text-cyan-400">Color del Frame {selectedFrameIndex + 1}</label>
+                </div>
+                <div className="flex flex-wrap gap-2 justify-center py-3 bg-black/30 rounded-lg border border-white/5">
+                  {BOX_PALETTE_CONFIG.map((opt, idx) => (
+                    <button
+                      key={`anim-sequence-hue-${opt.hex}-${idx}`}
+                      onClick={() => {
+                        const currentFilters = editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none'];
+                        const newFilters = [...currentFilters];
+                        newFilters[selectedFrameIndex] = opt.filter;
+                        
+                        // Si era el sistema viejo de 2, lo migramos al nuevo
+                        if (!editedItem.animationHueFilters) {
+                          setEditedItem(prev => ({ 
+                            ...prev, 
+                            animationHueFilters: newFilters,
+                            boxFilter: newFilters[0],
+                            secondaryBoxFilter: undefined // Desactivar el sistema viejo
+                          }));
+                        } else {
+                          // Si el frame editado es el 0, también actualizamos el boxFilter principal
+                          const update: any = { animationHueFilters: newFilters };
+                          if (selectedFrameIndex === 0) update.boxFilter = opt.filter;
+                          setEditedItem(prev => ({ ...prev, ...update }));
+                        }
+                      }}
+                      className={`w-9 h-9 pixel-panel border-2 transition-all ${(editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none'])[selectedFrameIndex] === opt.filter ? 'border-cyan-400 scale-110' : 'border-white/10 opacity-70 hover:opacity-100'}`}
+                      style={{ backgroundColor: opt.hex }}
+                      title={opt.hex}
+                    />
+                  ))}
+                </div>
+                      {/* METRONOME */}
+              <div className="flex flex-col gap-3 pt-2 mt-auto">
+                 <div className="flex justify-between items-baseline">
+                    <label className="text-xs uppercase text-violet-300 font-bold">Velocidad de Animación (BPM)</label>
+                    <span className="text-xl font-mono text-white tracking-widest">{bpm} <span className="text-[10px] opacity-50">BPM</span></span>
+                 </div>
+                 <input
+                   type="range"
+                   min="30"
+                   max="480"
+                   step="1"
+                   value={bpm}
+                   onChange={(e) => handleBpmChange({ target: { value: e.target.value } } as any)}
+                   className="w-full h-2 bg-violet-900/50 rounded-full appearance-none cursor-pointer accent-violet-400"
+                 />
+                 <p className="text-[10px] opacity-40 uppercase italic">Sincronizado globalmente con el metrónomo de la pizarra</p>
+              </div>        </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3">

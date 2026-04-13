@@ -34,6 +34,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
 
   const [isDragging, setIsDragging] = useState(false);
   const [currentImageUrl, setCurrentImageUrl] = useState(item.imageUrl);
+  const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isEditingText, setIsEditingText] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDraggingText, setIsDraggingText] = useState(false);
@@ -194,17 +195,41 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     };
   }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
 
+  // MOTOR RÍTMICO ULTRA-SIMPLIFICADO
   useEffect(() => {
     itemRef.current = item;
-    if (item.type === ItemType.SuperTitle && item.secondaryImageUrl && item.blinkInterval) {
+    
+    const sequence = item.animationHueFilters || (item.secondaryBoxFilter ? [item.boxFilter || 'none', item.secondaryBoxFilter] : []);
+
+    if (sequence.length > 1 && item.blinkInterval) {
       const intervalId = setInterval(() => {
-        setCurrentImageUrl(prev => prev === item.imageUrl ? item.secondaryImageUrl! : item.imageUrl);
+        setCurrentFrameIndex(prev => (prev + 1) % sequence.length);
+        
+        if (item.secondaryImageUrl) {
+          setCurrentImageUrl(prev => prev === item.imageUrl ? item.secondaryImageUrl! : item.imageUrl);
+        }
       }, item.blinkInterval);
+      
       return () => clearInterval(intervalId);
     } else {
       setCurrentImageUrl(item.imageUrl);
+      setCurrentFrameIndex(0);
     }
-  }, [item]);
+  }, [
+    item.id,
+    item.imageUrl, 
+    item.secondaryImageUrl, 
+    item.boxFilter, 
+    item.secondaryBoxFilter, 
+    JSON.stringify(item.animationHueFilters), 
+    item.blinkInterval
+  ]);
+
+  // Filtro derivado del índice para sincronización atómica
+  const activeSequence = item.animationHueFilters || (item.secondaryBoxFilter ? [item.boxFilter || 'none', item.secondaryBoxFilter] : []);
+  const activeBoxFilter = activeSequence.length > 1 
+    ? activeSequence[currentFrameIndex % activeSequence.length] 
+    : (item.boxFilter || 'none');
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // Checkear si es click derecho (2) para mover el texto libremente
@@ -503,7 +528,9 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const isTimerItem = item.type === ItemType.Timer;
   const isCheckboxItem = item.type === ItemType.Checkbox;
   const isPlainTextItem = item.type === ItemType.PlainText;
+  const isNineSliceItem = item.type === ItemType.Box || item.type === ItemType.SuperTitle;
   const isBoxItem = item.type === ItemType.Box;
+  const isSuperTitleItem = item.type === ItemType.SuperTitle;
 
   const handleCheckboxToggle = useCallback(() => {
     onUpdate({ ...item, checked: !item.checked });
@@ -614,7 +641,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       }}
     >
       <div className={`relative w-full h-full bg-cover bg-center select-none ${isDragging ? 'cursor-grabbing' : ''} ${effectClasses}`}>
-        {isBoxItem ? (
+        {isNineSliceItem ? (
           // Renderizado 9-slice con border-image CSS
           (() => {
             const s = item.borderSlice || { top: 18, right: 31, bottom: 24, left: 28 };
@@ -624,15 +651,15 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
                 style={{
                   borderStyle: 'solid',
                   borderWidth: `${s.top}px ${s.right}px ${s.bottom}px ${s.left}px`,
-                  borderImage: `url("${item.imageUrl}") ${s.top} ${s.right} ${s.bottom} ${s.left} fill stretch`,
+                  borderImage: `url("${currentImageUrl}") ${s.top} ${s.right} ${s.bottom} ${s.left} fill stretch`,
                   imageRendering: 'pixelated',
-                  filter: item.boxFilter || 'none',
+                  filter: activeBoxFilter,
                 }}
               />
             );
           })()
         ) : (
-          !isPlainTextItem && <img src={currentImageUrl} alt="draggable item" className="w-full h-full pointer-events-none" referrerPolicy="no-referrer" />
+          !isPlainTextItem && <img src={currentImageUrl} alt="draggable item" className="w-full h-full pointer-events-none" referrerPolicy="no-referrer" style={{ filter: activeBoxFilter }} />
         )}
         <div
           className={`text-container-move absolute inset-0 p-4 flex items-center justify-center pointer-events-none`}

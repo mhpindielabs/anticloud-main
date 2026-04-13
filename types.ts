@@ -60,6 +60,8 @@ export interface BoardItem {
   groupId?: string;
   borderSlice?: { top: number; right: number; bottom: number; left: number };
   boxFilter?: string;
+  secondaryBoxFilter?: string;
+  animationHueFilters?: string[];
 }
 
 export interface Connection {

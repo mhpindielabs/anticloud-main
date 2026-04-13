@@ -1,28 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { ArrowLeftIcon, ArrowRightIcon } from './Icons';
-import { TitleImageCollections, TitleCollectionKey } from '../types';
+import { TextboxImageCollections, TextboxCollectionKey } from '../types';
 
 interface AddSuperTitleModalProps {
-  collections: TitleImageCollections;
+  collections: TextboxImageCollections;
   onAdd: (imageUrl1: string, imageUrl2: string, interval: number) => void;
   onClose: () => void;
 }
 
 const AddSuperTitleModal: React.FC<AddSuperTitleModalProps> = ({ collections, onAdd, onClose }) => {
-  const [step, setStep] = useState<'size' | 'img1' | 'img2' | 'interval'>('size');
-  const [selectedSize, setSelectedSize] = useState<TitleCollectionKey>('x1');
+  // Ya no usamos 'size' (Paso 1), empezamos directamente en 'img1'
+  const [step, setStep] = useState<'img1' | 'img2' | 'interval'>('img1');
+  const [selectedCollection, setSelectedCollection] = useState<TextboxCollectionKey>('x1');
   const [img1, setImg1] = useState<string>('');
   const [img2, setImg2] = useState<string>('');
   const [interval, setInterval] = useState<number>(500);
   const [bpm, setBpm] = useState<number>(120);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const availableImages = collections[selectedSize].filter((img): img is string => !!img);
+  const availableImages = collections[selectedCollection].filter((img): img is string => !!img);
 
   useEffect(() => {
     setCurrentIndex(0);
-  }, [selectedSize, step]);
+  }, [selectedCollection, step]);
 
   const handleIntervalChange = (newInterval: number) => {
     setInterval(newInterval);
@@ -37,8 +38,7 @@ const AddSuperTitleModal: React.FC<AddSuperTitleModalProps> = ({ collections, on
   };
 
   const handleNextStep = () => {
-    if (step === 'size') setStep('img1');
-    else if (step === 'img1') {
+    if (step === 'img1') {
       if (availableImages.length > 0) {
         setImg1(availableImages[currentIndex]);
         setStep('img2');
@@ -54,8 +54,7 @@ const AddSuperTitleModal: React.FC<AddSuperTitleModalProps> = ({ collections, on
   };
 
   const handlePrevStep = () => {
-    if (step === 'img1') setStep('size');
-    else if (step === 'img2') setStep('img1');
+    if (step === 'img2') setStep('img1');
     else if (step === 'interval') setStep('img2');
   };
 
@@ -68,33 +67,40 @@ const AddSuperTitleModal: React.FC<AddSuperTitleModalProps> = ({ collections, on
   };
 
   return (
-    <Modal onClose={onClose} title="Añadir SuperTitle" className="max-w-2xl">
+    <Modal onClose={onClose} title="Añadir SuperTitle (9-Slice)" className="max-w-2xl">
       <div className="p-6 flex flex-col gap-6">
-        {step === 'size' && (
-          <div className="flex flex-col gap-4">
-            <h3 className="text-xl uppercase text-center">Paso 1: Elige el tamaño</h3>
-            <div className="grid grid-cols-3 gap-3">
-              {(['x1/2', 'x1', 'x2', 'x3', 'x4'] as TitleCollectionKey[]).map(size => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`pixel-button py-3 text-xl ${selectedSize === size ? 'pixel-button-active' : ''}`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
+        
+        {/* Selector de Colección (Opcional, pero útil para variar el estilo de la caja) */}
+        {(step === 'img1' || step === 'img2') && (
+          <div className="flex justify-center gap-2 mb-2">
+            {(['x1', 'x4', 'x16'] as TextboxCollectionKey[]).map(key => (
+              <button
+                key={key}
+                onClick={() => setSelectedCollection(key)}
+                className={`pixel-button px-4 py-1 text-sm ${selectedCollection === key ? 'pixel-button-active' : ''}`}
+              >
+                {key}
+              </button>
+            ))}
           </div>
         )}
 
         {(step === 'img1' || step === 'img2') && (
           <div className="flex flex-col gap-4 items-center">
             <h3 className="text-xl uppercase text-center">
-              Paso {step === 'img1' ? '2' : '3'}: Elige la imagen {step === 'img1' ? '1' : '2'}
+              Paso {step === 'img1' ? '1' : '2'}: Elige la {step === 'img1' ? 'primera' : 'segunda'} "piel" de la caja
             </h3>
             <div className="w-full h-48 pixel-content-box flex items-center justify-center bg-[#203c56]">
               {availableImages.length > 0 ? (
-                <img src={availableImages[currentIndex]} alt="Preview" className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
+                <div 
+                  className="w-48 h-24"
+                  style={{
+                    borderStyle: 'solid',
+                    borderWidth: '18px 31px 24px 28px',
+                    borderImage: `url("${availableImages[currentIndex]}") 18 31 24 28 fill stretch`,
+                    imageRendering: 'pixelated'
+                  }}
+                />
               ) : (
                 <p>No hay imágenes en esta colección</p>
               )}
@@ -113,7 +119,7 @@ const AddSuperTitleModal: React.FC<AddSuperTitleModalProps> = ({ collections, on
 
         {step === 'interval' && (
           <div className="flex flex-col gap-6 items-center">
-            <h3 className="text-xl uppercase text-center">Paso 4: Velocidad de parpadeo</h3>
+            <h3 className="text-xl uppercase text-center">Paso 3: Velocidad de parpadeo</h3>
             
             <div className="w-full flex flex-col gap-4">
               <div className="flex flex-col gap-2">
@@ -150,24 +156,30 @@ const AddSuperTitleModal: React.FC<AddSuperTitleModalProps> = ({ collections, on
 
             <div className="flex gap-8 mt-4">
                 <div className="flex flex-col items-center gap-2">
-                    <span className="text-xs uppercase opacity-50">Imagen 1</span>
-                    <div className="w-24 h-24 flex items-center justify-center pixel-content-box p-1 bg-[#203c56]">
-                        <img src={img1} className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
-                    </div>
+                    <span className="text-xs uppercase opacity-50">Caja 1</span>
+                    <div className="w-24 h-12" style={{
+                      borderStyle: 'solid',
+                      borderWidth: '10px 15px 12px 14px',
+                      borderImage: `url("${img1}") 10 15 12 14 fill stretch`,
+                      imageRendering: 'pixelated'
+                    }} />
                 </div>
                 <div className="flex flex-col items-center gap-2">
-                    <span className="text-xs uppercase opacity-50">Imagen 2</span>
-                    <div className="w-24 h-24 flex items-center justify-center pixel-content-box p-1 bg-[#203c56]">
-                        <img src={img2} className="max-w-full max-h-full object-contain" referrerPolicy="no-referrer" />
-                    </div>
+                    <span className="text-xs uppercase opacity-50">Caja 2</span>
+                    <div className="w-24 h-12" style={{
+                      borderStyle: 'solid',
+                      borderWidth: '10px 15px 12px 14px',
+                      borderImage: `url("${img2}") 10 15 12 14 fill stretch`,
+                      imageRendering: 'pixelated'
+                    }} />
                 </div>
             </div>
           </div>
         )}
 
         <div className="flex justify-between mt-6 pt-6 border-t border-white/10">
-          <button onClick={step === 'size' ? onClose : handlePrevStep} className="pixel-button px-6 py-2 bg-red-700">
-            {step === 'size' ? 'Cancelar' : 'Atrás'}
+          <button onClick={step === 'img1' ? onClose : handlePrevStep} className="pixel-button px-6 py-2 bg-red-700">
+            {step === 'img1' ? 'Cancelar' : 'Atrás'}
           </button>
           <button 
             onClick={handleNextStep} 
