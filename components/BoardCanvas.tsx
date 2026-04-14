@@ -168,10 +168,6 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             transform: `translate(${canvasOffsetX}px, ${canvasOffsetY}px)` 
           }}
         >
-          {/* Infinite Axis Guides (Debug) */}
-          <div style={{ position: 'absolute', top: 0, left: -50000, width: 100000, height: '1px', backgroundColor: '#00ffff', opacity: 0.3, pointerEvents: 'none', zIndex: 0 }} />
-          <div style={{ position: 'absolute', left: 0, top: -50000, height: 100000, width: '1px', backgroundColor: '#ff00ff', opacity: 0.3, pointerEvents: 'none', zIndex: 0 }} />
-
           {activeBoard.particles && activeBoard.particles !== 'none' && (
             <div style={{ position: 'absolute', left: -canvasOffsetX, top: -canvasOffsetY, pointerEvents: 'none' }}>
               <ParticleSystem
@@ -321,10 +317,37 @@ const BoardCanvas: React.FC<BoardCanvasProps> = ({
             />
           )}
         </div>
+        {/* Eje X (Cyan) - Horizontal */}
+        <div 
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: -1000000,
+            width: 2000000,
+            height: '1px',
+            backgroundColor: 'cyan',
+            opacity: 0.5,
+            pointerEvents: 'none',
+            zIndex: 9999
+          }} 
+        />
+        {/* Eje Y (Magenta) - Vertical */}
+        <div 
+          style={{
+            position: 'absolute',
+            top: -1000000,
+            left: 0,
+            width: '1px',
+            height: 2000000,
+            backgroundColor: 'magenta',
+            opacity: 0.5,
+            pointerEvents: 'none',
+            zIndex: 9999
+          }} 
+        />
       </div>
     </div>
-  </div>
-);
+  );
 };
 
 export default BoardCanvas;
