@@ -118,6 +118,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Pizarra */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-boards-btn"
             onClick={() => toggleCategory('boards')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'boards' ? 'bg-white/10 text-indigo-400' : 'text-white'}`}
           >
@@ -158,6 +159,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Añadir */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-add-btn"
             onClick={() => toggleCategory('add')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'add' ? 'bg-white/10 text-blue-400' : 'text-white'}`}
           >
@@ -184,6 +186,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Música */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-music-btn"
             onClick={() => toggleCategory('music')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'music' ? 'bg-white/10 text-indigo-400' : 'text-white'}`}
           >
@@ -202,6 +205,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Edición */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-edit-btn"
             onClick={() => toggleCategory('edit')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'edit' ? 'bg-white/10 text-slate-400' : 'text-white'}`}
           >
@@ -235,6 +239,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Vista */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-view-btn"
             onClick={() => toggleCategory('view')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'view' ? 'bg-white/10 text-teal-400' : 'text-white'}`}
           >
@@ -255,6 +260,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Exportar */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-export-btn"
             onClick={() => toggleCategory('export')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'export' ? 'bg-white/10 text-orange-400' : 'text-white'}`}
           >
@@ -278,6 +284,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
         {/* Ayuda */}
         <div className="relative h-full flex items-center">
           <button
+            id="tutorial-help-btn"
             onClick={() => toggleCategory('help')}
             className={`px-3 h-full flex items-center gap-2 hover:bg-white/5 transition-colors font-mono text-sm ${activeCategory === 'help' ? 'bg-white/10 text-amber-400' : 'text-white'}`}
           >

@@ -1,6 +1,15 @@
-import { get, set, del } from 'idb-keyval';
+import { get, set, del, clear } from 'idb-keyval';
 
 export const storage = {
+  async clearAll(): Promise<void> {
+    try {
+      await clear();
+      localStorage.clear();
+      console.log('ANTI_CLOUD: Datos eliminados por completo.');
+    } catch (e) {
+      console.error('ANTI_CLOUD Error al limpiar datos:', e);
+    }
+  },
   async getItem(key: string): Promise<string | null> {
     try {
       const value = await get<string>(key);

@@ -16,6 +16,8 @@ interface UseCanvasEventsProps {
   setIsSelectingArea: React.Dispatch<React.SetStateAction<boolean>>;
   activeBoard: Board;
   onScreenshot: (area?: { x: number; y: number; width: number; height: number }) => void;
+  canvasOffsetX?: number;
+  canvasOffsetY?: number;
 }
 
 export const useCanvasEvents = ({
@@ -31,7 +33,9 @@ export const useCanvasEvents = ({
   setSelectionRect,
   setIsSelectingArea,
   activeBoard,
-  onScreenshot
+  onScreenshot,
+  canvasOffsetX = 0,
+  canvasOffsetY = 0
 }: UseCanvasEventsProps) => {
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
@@ -40,12 +44,30 @@ export const useCanvasEvents = ({
   const scrollAnimationRef = useRef<number | null>(null);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      const delta = e.deltaY > 0 ? 0.9 : 1.1;
-      setZoom(prev => Math.max(0.1, Math.min(prev * delta, 5)));
+    e.preventDefault();
+    
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+
+    const boardRefRect = boardRef.current?.getBoundingClientRect();
+    if (!boardRefRect) return;
+
+    // Point on the board before scaling, relative to logical (0,0)
+    const boardX = (e.clientX - boardRefRect.left) / zoom;
+    const boardY = (e.clientY - boardRefRect.top) / zoom;
+
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoom = Math.max(0.1, Math.min(zoom * delta, 5));
+    
+    if (newZoom !== zoom) {
+      setZoom(newZoom);
+
+      // Adjust scroll to keep the same board point under the mouse
+      // New scroll = (board point * new zoom) - mouse position within viewport
+      viewport.scrollLeft = boardX * newZoom - mouseX;
+      viewport.scrollTop = boardY * newZoom - mouseY;
     }
-  }, [setZoom]);
+  }, [zoom, setZoom, viewportRef]);
 
   const handlePanMouseMove = useCallback((e: MouseEvent) => {
     if (!isPanning.current || !viewportRef.current) return;
@@ -185,10 +207,10 @@ export const useCanvasEvents = ({
   };
 
   const handleSelectionMouseMove = useCallback((e: MouseEvent) => {
-    if (!selectionStartPoint.current || !viewportRef.current) return;
-    const viewportRect = viewportRef.current.getBoundingClientRect();
-    let currentX = (viewportRef.current.scrollLeft + e.clientX - viewportRect.left) / zoom;
-    let currentY = (viewportRef.current.scrollTop + e.clientY - viewportRect.top) / zoom;
+    if (!selectionStartPoint.current || !boardRef.current) return;
+    const rect = boardRef.current.getBoundingClientRect();
+    let currentX = (e.clientX - rect.left) / zoom;
+    let currentY = (e.clientY - rect.top) / zoom;
     if (isGridVisible) {
       currentX = Math.round(currentX / GRID_SIZE) * GRID_SIZE;
       currentY = Math.round(currentY / GRID_SIZE) * GRID_SIZE;
@@ -217,10 +239,10 @@ export const useCanvasEvents = ({
   }, [handleSelectionMouseMove, onScreenshot, setIsSelectingArea, setSelectionRect]);
 
   const handleSelectionMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!viewportRef.current) return;
-    const viewportRect = viewportRef.current.getBoundingClientRect();
-    let boardX = (viewportRef.current.scrollLeft + e.clientX - viewportRect.left) / zoom;
-    let boardY = (viewportRef.current.scrollTop + e.clientY - viewportRect.top) / zoom;
+    if (!boardRef.current) return;
+    const rect = boardRef.current.getBoundingClientRect();
+    const boardX = (e.clientX - rect.left) / zoom;
+    const boardY = (e.clientY - rect.top) / zoom;
     if (isGridVisible) {
       boardX = Math.round(boardX / GRID_SIZE) * GRID_SIZE;
       boardY = Math.round(boardY / GRID_SIZE) * GRID_SIZE;

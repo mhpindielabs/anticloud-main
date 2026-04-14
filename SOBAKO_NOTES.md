@@ -1,2 +1,3 @@
 - Hotkeys básicas con la caja.
-- Eliminar controles cámara gui flechas mobile.
+- Colocar el size en la config (caja)
+- 

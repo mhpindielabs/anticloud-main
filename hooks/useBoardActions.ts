@@ -24,6 +24,8 @@ interface UseBoardActionsProps {
   setTextboxImages: React.Dispatch<React.SetStateAction<any>>;
   setPixelImages: React.Dispatch<React.SetStateAction<any>>;
   setSpriteImages: React.Dispatch<React.SetStateAction<any>>;
+  canvasOffsetX: number;
+  canvasOffsetY: number;
 }
 
 export const useBoardActions = ({
@@ -45,7 +47,9 @@ export const useBoardActions = ({
   setTitleImages,
   setTextboxImages,
   setPixelImages,
-  setSpriteImages
+  setSpriteImages,
+  canvasOffsetX,
+  canvasOffsetY
 }: UseBoardActionsProps) => {
 
   const handleAddItem = useCallback((type: ItemType, imageUrl?: string, extraProps: Partial<BoardItem> = {}) => {
@@ -54,39 +58,34 @@ export const useBoardActions = ({
     
     const createItem = (itemWidth: number, itemHeight: number) => {
       const viewport = viewportRef.current;
-      if (!viewport) {
-        console.warn('No viewport found, cannot add item');
-        return;
-      }
+      if (!viewport) return;
       
-      let finalWidth = itemWidth;
-      let finalHeight = itemHeight;
+      let finalWidth = extraProps.width || itemWidth;
+      let finalHeight = extraProps.height || itemHeight;
       
       if (type === ItemType.Pixel || type === ItemType.Sprite) {
         const sizeMultiplier = type === ItemType.Pixel ? pixelSizeMultiplier : spriteSizeMultiplier;
-        switch (sizeMultiplier) {
-          case 'x1': finalWidth /= 2; finalHeight /= 2; break;
-          case 'x1/2': finalWidth /= 4; finalHeight /= 4; break;
-          case 'x1/4': finalWidth /= 8; finalHeight /= 8; break;
+        // Only apply multiplier if width/height were not explicitly overridden in extraProps
+        if (!extraProps.width) {
+          switch (sizeMultiplier) {
+            case 'x1': finalWidth /= 2; finalHeight /= 2; break;
+            case 'x1/2': finalWidth /= 4; finalHeight /= 4; break;
+            case 'x1/4': finalWidth /= 8; finalHeight /= 8; break;
+          }
         }
       }
       
-      const scrollLeft = viewport.scrollLeft;
-      const scrollTop = viewport.scrollTop;
-      const viewportWidth = viewport.clientWidth;
-      const viewportHeight = viewport.clientHeight;
-      
-      let initialX = (scrollLeft + (viewportWidth - finalWidth * zoom) / 2) / zoom;
-      let initialY = (scrollTop + (viewportHeight - finalHeight * zoom) / 2) / zoom;
-      
-      if (boardRef.current) {
-        const currentBoard = boards[activeBoardIndex];
-        const boardWidth = currentBoard?.width || 3000;
-        const boardHeight = currentBoard?.height || 2000;
-        initialX = Math.max(0, Math.min(initialX, boardWidth - finalWidth));
-        initialY = Math.max(0, Math.min(initialY, boardHeight - finalHeight));
-      }
+      const boardRect = boardRef.current?.getBoundingClientRect();
+      if (!boardRect) return;
 
+      // Use the absolute window center to avoid any container-relative offsets
+      const centerX = window.innerWidth / 2;
+      const centerY = window.innerHeight / 2;
+
+      // Calculate logical position relative to the origin's current screen position
+      const initialX = (centerX - boardRect.left) / zoom - (finalWidth / 2);
+      const initialY = (centerY - boardRect.top) / zoom - (finalHeight / 2);
+      
       const defaultText = type === ItemType.Counter ? '0' : (type === ItemType.Timer ? '00:00' : (type === ItemType.File ? 'Archivo' : (type === ItemType.Checkbox ? 'Tarea' : (type === ItemType.PlainText ? 'Texto' : (type === ItemType.Pixel || type === ItemType.Sprite ? '' : '¡Edítame!')))));
 
       const newItem: BoardItem = {
@@ -128,29 +127,20 @@ export const useBoardActions = ({
         ...extraProps,
       };
 
-      console.log('Creating new item:', newItem);
-      
-      setBoards(prev => {
-        const newBoards = prev.map((board, index) => 
-          index === activeBoardIndex ? { ...board, items: [...board.items, newItem] } : board
-        );
-        console.log('Updated boards state');
-        return newBoards;
-      });
+      setBoards(prev => prev.map((board, index) => 
+        index === activeBoardIndex ? { ...board, items: [...board.items, newItem] } : board
+      ));
     };
 
     if (imageUrl) {
       const img = new Image();
       img.onload = () => createItem(img.naturalWidth, img.naturalHeight);
-      img.onerror = () => {
-        console.error(`Failed to load image at ${imageUrl}. Creating item with default size.`);
-        createItem(250, 100);
-      };
+      img.onerror = () => createItem(250, 100);
       img.src = imageUrl;
     } else {
       createItem(250, 100);
     }
-  }, [activeBoardIndex, viewportRef, boardRef, zoom, pixelSizeMultiplier, spriteSizeMultiplier, setActiveModal, setBoards, boards]);
+  }, [activeBoardIndex, viewportRef, zoom, pixelSizeMultiplier, spriteSizeMultiplier, setActiveModal, setBoards, canvasOffsetX, canvasOffsetY]);
 
   const handleBatchAddItems = useCallback((items: { type: ItemType, imageUrl: string, extraProps: Partial<BoardItem> }[]) => {
     setActiveModal(null);
@@ -162,24 +152,23 @@ export const useBoardActions = ({
     const viewportWidth = viewport.clientWidth;
     const viewportHeight = viewport.clientHeight;
 
+    const boardRect = boardRef.current?.getBoundingClientRect();
+    if (!boardRect) return;
+
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+
     const newBoardItems: BoardItem[] = [];
     const now = Date.now();
 
     items.forEach((item, idx) => {
-      // For batch, we'll assume a default size if we don't want to wait for 7 images to load
-      // or we can just use a fixed spacing.
       const itemWidth = 250; 
       const itemHeight = 100;
       
-      let finalWidth = itemWidth;
-      let finalHeight = itemHeight;
+      let initialX = (centerX - boardRect.left) / zoom - (itemWidth / 2);
+      let initialY = (centerY - boardRect.top) / zoom - (itemHeight / 2);
 
-      // Calculate base position (center of viewport)
-      let initialX = (scrollLeft + (viewportWidth - finalWidth * zoom) / 2) / zoom;
-      let initialY = (scrollTop + (viewportHeight - finalHeight * zoom) / 2) / zoom;
-
-      // Apply offset for batch (horizontal layout)
-      initialX += (idx - (items.length - 1) / 2) * (finalWidth + 20);
+      initialX += (idx - (items.length - 1) / 2) * (itemWidth + 20);
 
       const newItem: BoardItem = {
         id: `item_${now}_${idx}`,
@@ -187,8 +176,8 @@ export const useBoardActions = ({
         imageUrl: item.imageUrl,
         x: initialX,
         y: initialY,
-        width: finalWidth,
-        height: finalHeight,
+        width: itemWidth,
+        height: itemHeight,
         text: '¡Edítame!',
         textColor: '#000000',
         fontFamily: FONT_FACES[1],
@@ -209,10 +198,15 @@ export const useBoardActions = ({
     setBoards(prev => prev.map((board, index) => 
       index === activeBoardIndex ? { ...board, items: [...board.items, ...newBoardItems] } : board
     ));
-  }, [activeBoardIndex, viewportRef, zoom, setActiveModal, setBoards]);
+  }, [activeBoardIndex, viewportRef, zoom, setActiveModal, setBoards, canvasOffsetX, canvasOffsetY]);
 
   const handleDuplicateSelected = useCallback(() => {
     if (selectedItemIds.length === 0) return;
+    const currentBoard = boards[activeBoardIndex];
+    const currentItems = currentBoard?.items || [];
+    
+    let itemsToCenter: BoardItem[] = [];
+    
     setBoards(prev => {
       const boardsCopy = [...prev];
       const boardToUpdate = boardsCopy[activeBoardIndex];
@@ -224,6 +218,7 @@ export const useBoardActions = ({
         x: item.x + GRID_SIZE,
         y: item.y + GRID_SIZE,
       }));
+      itemsToCenter = newItems;
       boardsCopy[activeBoardIndex] = { ...boardToUpdate, items: [...boardToUpdate.items, ...newItems] };
       return boardsCopy;
     });
@@ -249,6 +244,11 @@ export const useBoardActions = ({
 
   const handlePaste = useCallback(() => {
     if (clipboard.length === 0) return;
+    const currentBoard = boards[activeBoardIndex];
+    const currentItems = currentBoard?.items || [];
+    
+    let itemsToCenter: BoardItem[] = [];
+    
     setBoards(prev => {
       const boardsCopy = [...prev];
       const boardToUpdate = boardsCopy[activeBoardIndex];
@@ -259,6 +259,7 @@ export const useBoardActions = ({
         x: item.x + 40,
         y: item.y + 40,
       }));
+      itemsToCenter = newItems;
       boardsCopy[activeBoardIndex] = { ...boardToUpdate, items: [...boardToUpdate.items, ...newItems] };
       return boardsCopy;
     });
@@ -359,6 +360,21 @@ export const useBoardActions = ({
     });
   }, [handleAddItem]);
 
+  const handleResetCamera = useCallback(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    
+    // Target (0,0) logical origin accurately using absolute screen center
+    const targetX = (canvasOffsetX * zoom) - (window.innerWidth / 2);
+    const targetY = (canvasOffsetY * zoom) - (window.innerHeight / 2);
+
+    viewport.scrollTo({
+      left: targetX,
+      top: targetY,
+      behavior: 'smooth'
+    });
+  }, [viewportRef, zoom, canvasOffsetX, canvasOffsetY]);
+
   return {
     handleAddItem,
     handleAddCounter,
@@ -375,6 +391,7 @@ export const useBoardActions = ({
     handleBackgroundFileChange,
     handleSaveAssetImages,
     handleScreenshot,
-    handleStartEditItem
+    handleStartEditItem,
+    handleResetCamera
   };
 };

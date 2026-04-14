@@ -14,7 +14,7 @@ import SuggestionsModal from './components/SuggestionsModal';
 import TutorialGuide, { TUTORIAL_STEPS } from './components/TutorialGuide';
 import {
   PlusIcon, MusicIcon, LayersIcon, FileIcon, SettingsIcon, CameraIcon,
-  BoardNextIcon, SelectIcon, SmartphoneIcon, HelpIcon, SuggestionIcon, GridIcon
+  BoardNextIcon, SelectIcon, SmartphoneIcon, HelpIcon, SuggestionIcon, GridIcon, HomeIcon
 } from './components/Icons';
 import Modal from './components/Modal';
 import Toolbar from './components/Toolbar';
@@ -25,6 +25,7 @@ import { useAssets } from './hooks/useAssets';
 import { useUIState } from './hooks/useUIState';
 import { useCanvasEvents } from './hooks/useCanvasEvents';
 import { useBoardActions } from './hooks/useBoardActions';
+import { storage } from './utils/storageUtils';
 
 const App: React.FC = () => {
   const {
@@ -62,7 +63,8 @@ const App: React.FC = () => {
     tutorialStep, setTutorialStep,
     connectingFromId, setConnectingFromId,
     connectionPointerCoord, setConnectionPointerCoord,
-    hoveredItemId, setHoveredItemId
+    hoveredItemId, setHoveredItemId,
+    mouseCoords, setMouseCoords
   } = useUIState();
 
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -116,16 +118,27 @@ const App: React.FC = () => {
     event.target.value = '';
   };
 
+  const minX = Math.min(0, ...(activeBoard?.items || []).map(i => i.x));
+  const minY = Math.min(0, ...(activeBoard?.items || []).map(i => i.y));
+  const maxX = Math.max(3000, ...(activeBoard?.items || []).map(i => i.x + (i.width || 0)));
+  const maxY = Math.max(2000, ...(activeBoard?.items || []).map(i => i.y + (i.height || 0)));
+
+  const canvasOffsetX = Math.max(0, -minX) + 2000;
+  const canvasOffsetY = Math.max(0, -minY) + 2000;
+  const canvasWidth = (maxX - minX) + 4000;
+  const canvasHeight = (maxY - minY) + 4000;
+
   const {
     handleAddItem, handleAddCounter, handleAddTimer, handleAddFile, handleAddCheckbox, handleAddPlainText, handleAddBox, handleBatchAddItems, handleDuplicateSelected, handleDeleteSelected, handleCopySelected,
     handlePaste, handleBackgroundFileChange, handleSaveAssetImages,
-    handleScreenshot, handleStartEditItem
+    handleScreenshot, handleStartEditItem, handleResetCamera
   } = useBoardActions({
     boards, setBoards, activeBoardIndex, viewportRef, boardRef, zoom,
     pixelSizeMultiplier, spriteSizeMultiplier, setActiveModal,
     selectedItemIds, setSelectedItemIds, clipboard, setClipboard,
     setIsCapturing, setEditingItem, setTitleImages, setTextboxImages,
-    setPixelImages, setSpriteImages
+    setPixelImages, setSpriteImages,
+    canvasOffsetX, canvasOffsetY
   });
 
   const {
@@ -136,7 +149,8 @@ const App: React.FC = () => {
   } = useCanvasEvents({
     zoom, setZoom, viewportRef, boardRef, isMultiSelectMode, isGridVisible,
     setSelectedItemId, setSelectedItemIds, setMultiSelectRect, setSelectionRect,
-    setIsSelectingArea, activeBoard, onScreenshot: handleScreenshot
+    setIsSelectingArea, activeBoard, onScreenshot: handleScreenshot,
+    canvasOffsetX, canvasOffsetY
   });
 
   const handleThemeChange = () => {
@@ -261,6 +275,43 @@ const App: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [hoveredItemId, handleDeleteItem, setSelectedItemIds, setSelectedItemId, setHoveredItemId]);
 
+  // Debug: F10 to clear all data and reload
+  useEffect(() => {
+    const handleDebugKey = async (e: KeyboardEvent) => {
+      if (e.key === 'F10') {
+        e.preventDefault();
+        await storage.clearAll();
+        window.location.reload();
+      }
+    };
+    window.addEventListener('keydown', handleDebugKey);
+    return () => window.removeEventListener('keydown', handleDebugKey);
+  }, []);
+
+  const hasInitializedCamera = useRef(false);
+
+  // Center camera on initial load
+  useEffect(() => {
+    if (isBoardsLoaded && isUILoaded && viewportRef.current && !hasInitializedCamera.current) {
+      // Use a timeout to ensure the DOM has fully updated its dimensions and layout
+      const timer = setTimeout(() => {
+        const viewport = viewportRef.current;
+        // Target (0,0) logical origin accurately using absolute screen center
+        const targetX = (canvasOffsetX * zoom) - (window.innerWidth / 2);
+        const targetY = (canvasOffsetY * zoom) - (window.innerHeight / 2);
+        
+        viewport.scrollTo({
+          left: targetX,
+          top: targetY,
+          behavior: 'auto' // Instant on first load
+        });
+        
+        hasInitializedCamera.current = true;
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isBoardsLoaded, isUILoaded, canvasOffsetX, canvasOffsetY, zoom]);
+
   return (
     <div
       className="relative w-screen h-screen bg-black overflow-hidden"
@@ -276,6 +327,18 @@ const App: React.FC = () => {
           <p className="text-4xl text-white animate-pulse">Capturando pizarra...</p>
         </div>
       )}
+
+      {/* Mouse Coordinates Indicator (Debug) */}
+      <div 
+        className="fixed pointer-events-none z-[9999] text-[10px] font-mono text-cyan-400 bg-black/60 px-1.5 py-0.5 rounded border border-cyan-500/30 backdrop-blur-sm"
+        style={{ 
+          left: `${mouseCoords.clientX + 15}px`, 
+          top: `${mouseCoords.clientY + 15}px`,
+          display: isBoardsLoaded ? 'block' : 'none'
+        }}
+      >
+        {Math.round(mouseCoords.x)}, {Math.round(mouseCoords.y)}
+      </div>
 
       <input
         type="file"
@@ -331,7 +394,26 @@ const App: React.FC = () => {
         handleRemoveConnection={handleRemoveConnection}
         setHoveredItemId={setHoveredItemId}
         hoveredItemId={hoveredItemId}
+        canvasOffsetX={canvasOffsetX}
+        canvasOffsetY={canvasOffsetY}
+        canvasWidth={canvasWidth}
+        canvasHeight={canvasHeight}
+        setMouseCoords={setMouseCoords}
       />
+
+      {/* Floating Home Button */}
+      <div className="absolute top-16 right-6 z-40">
+        <button
+          onClick={handleResetCamera}
+          className="p-3 bg-black/40 backdrop-blur-md border border-white/20 rounded-full text-white/70 hover:text-white hover:bg-white/10 hover:border-white/40 shadow-xl transition-all group overflow-hidden"
+          title="Centrar en Origen (0,0)"
+        >
+          <div className="relative z-10">
+            <HomeIcon />
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+        </button>
+      </div>
 
       <Toolbar
         isMobileMode={isMobileMode}

@@ -106,10 +106,8 @@ export const useBoards = () => {
         y: itemToDuplicate.y + GRID_SIZE,
       };
 
-      const boardWidth = boardToUpdate.width || 3000;
-      const boardHeight = boardToUpdate.height || 2000;
-      newItem.x = Math.max(0, Math.min(newItem.x, boardWidth - newItem.width));
-      newItem.y = Math.max(0, Math.min(newItem.y, boardHeight - newItem.height));
+      newItem.x = newItem.x;
+      newItem.y = newItem.y;
 
       const newItems = [...boardToUpdate.items, newItem];
       boardsCopy[activeBoardIndex] = { ...boardToUpdate, items: newItems };

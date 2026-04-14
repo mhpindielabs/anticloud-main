@@ -28,6 +28,16 @@
         image-rendering: -moz-crisp-edges;
         image-rendering: crisp-edges;
         margin: 0;
+        overflow: hidden; /* Evita que la página entera haga scroll */
+      }
+
+      /* Clase para ocultar barras de scroll pero permitir el movimiento programático */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
       }
       .pixel-box {
         border: 4px solid var(--pixel-border-color);

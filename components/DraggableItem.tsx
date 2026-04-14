@@ -24,9 +24,11 @@ interface DraggableItemProps {
   onConnectComplete?: (id: string) => void;
   setHoveredItemId: (id: string | null) => void;
   isHovered: boolean;
+  canvasOffsetX?: number;
+  canvasOffsetY?: number;
 }
 
-const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete, setHoveredItemId, isHovered }) => {
+const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete, onDuplicate, onEdit, onSendToBack, onToggleInventory, inventory, boardRef, zoom, snapToGrid, gridSize, isMobileMode, isSelected, onSelect, selectedItemIds, connectingFromId, onConnectStart, onConnectComplete, setHoveredItemId, isHovered, canvasOffsetX = 0, canvasOffsetY = 0 }) => {
   // Ajuste fino para la asimetría del sprite (EN PÍXELES) - SOLO TIENES QUE MODIFICAR ESTO
   const MARGENES_TEXTO = {
     izquierdo: 15,
@@ -318,12 +320,6 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       newY = Math.round(newY / gridSize) * gridSize;
     }
 
-    const boardWidth = 3000;
-    const boardHeight = 2000;
-
-    newX = Math.max(0, Math.min(newX, boardWidth - item.width));
-    newY = Math.max(0, Math.min(newY, boardHeight - item.height));
-
     const dx = newX - item.x;
     const dy = newY - item.y;
 
@@ -390,12 +386,6 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       finalX = Math.round(finalX / gridSize) * gridSize;
       finalY = Math.round(finalY / gridSize) * gridSize;
     }
-
-    const boardWidth = 3000;
-    const boardHeight = 2000;
-
-    finalX = Math.max(0, Math.min(finalX, boardWidth - item.width));
-    finalY = Math.max(0, Math.min(finalY, boardHeight - item.height));
 
     // Prevent position update if position hasn't changed to avoid re-render
     if (item.x !== finalX || item.y !== finalY) {
