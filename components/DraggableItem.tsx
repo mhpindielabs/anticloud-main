@@ -662,95 +662,23 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
               </div>
             )}
             {isEditingText ? (
-              <p
-                ref={textEditRef}
-                contentEditable
-                suppressContentEditableWarning
-                className={`whitespace-pre-wrap break-words pixel-text outline-none cursor-text pointer-events-auto`}
-                style={{
-                  color: item.textColor || '#000000',
-                  fontFamily: item.fontFamily || 'inherit',
-                  textShadow: 'none',
-                  fontSize: `${item.fontSize || 24}px`,
-                  lineHeight: 1.2,
-                  textAlign: item.textAlign || 'center',
-                  textTransform: item.textTransform || 'none',
-                  minWidth: '10px',
-                  caretColor: '#f97316',
-                }}
-                onBlur={(e) => {
-                  const newText = e.currentTarget.innerText;
-                  setIsEditingText(false);
-                  if (item.textFragments && item.textFragments.length > 0) {
-                    const newFragments = [...item.textFragments];
-                    if (activeFragmentIndex !== null && newFragments[activeFragmentIndex]) {
-                      newFragments[activeFragmentIndex] = { ...newFragments[activeFragmentIndex], text: newText };
-                      onUpdate({ ...itemRef.current, text: newFragments.map(f => f.text).join(''), textFragments: newFragments });
-                    }
-                  } else {
-                    if (newText !== item.text) {
-                      onUpdate({ ...itemRef.current, text: newText, textFragments: [] });
-                    }
-                  }
-                }}
-                onKeyDown={(e) => {
-                  e.stopPropagation();
-                  if (e.key === 'Escape') {
-                    setIsEditingText(false);
-                    if (textEditRef.current) textEditRef.current.blur();
-                  }
-                }}
-                onMouseDown={(e) => e.stopPropagation()}
-              >
-                {item.textFragments && item.textFragments.length > 0 && activeFragmentIndex !== null ? item.textFragments[activeFragmentIndex]?.text || '' : item.text}
-              </p>
+              <TextEditorWithStyles
+                item={item}
+                activeFragmentIndex={activeFragmentIndex}
+                textEditRef={textEditRef}
+                onUpdate={onUpdate}
+                itemRef={itemRef}
+                setIsEditingText={setIsEditingText}
+              />
             ) : (
-              <p
-                className={`whitespace-pre-wrap break-words pixel-text`}
-                style={{
-                  color: item.textColor || '#000000',
-                  fontFamily: item.fontFamily || 'inherit',
-                  textShadow: (item.textFragments && item.textFragments.length > 0) ? 'none' : textShadowStyle,
-                  fontSize: `${item.fontSize || 24}px`,
-                  lineHeight: 1.2,
-                  textAlign: item.textAlign || 'center',
-                  textTransform: item.textTransform || 'none',
-                  textDecoration: (isCheckboxItem && item.checked) ? 'line-through' : 'none',
-                  opacity: (isCheckboxItem && item.checked) ? 0.6 : 1,
-                }}
-              >
-                {item.textFragments && item.textFragments.length > 0 ? (
-                  item.textFragments.map((frag, i) => {
-                    const fragShadowColor = frag.shadowColor || item.textShadowColor || '#FFFFFF';
-                    const fragHasShadow = frag.hasShadow ?? item.textShadow ?? true;
-                    const fragShadowStyle = fragHasShadow
-                      ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
-                      : 'none';
-                    return (
-                      <span 
-                        key={`frag-${i}`}
-                        data-fragment-index={i}
-                        style={{ color: frag.color || item.textColor || '#000000', textShadow: fragShadowStyle }}
-                        onClick={(e) => { e.stopPropagation(); console.log('CLICK FRAGMENT', i); setActiveFragmentIndex(i); }}
-                        onMouseDown={(e) => { e.stopPropagation(); console.log('MOUSE DOWN FRAGMENT', i); }}
-                        onDoubleClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          console.log('DOUBLE CLICK FRAGMENT', i);
-                          setActiveFragmentIndex(i);
-                          setIsEditingText(true);
-                          setTimeout(() => textEditRef.current?.focus(), 0);
-                        }}
-                        className="cursor-text fragment-span"
-                      >
-                        {frag.text}
-                      </span>
-                    );
-                  })
-                ) : (
-                  item.text
-                )}
-              </p>
+              <TextDisplay
+                item={item}
+                isBoxItem={isBoxItem}
+                textShadowStyle={textShadowStyle}
+                setActiveFragmentIndex={setActiveFragmentIndex}
+                setIsEditingText={setIsEditingText}
+                textEditRef={textEditRef}
+              />
             )}
           </div>
         </div>
@@ -868,6 +796,126 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
         </>
       )}
     </div>
+  );
+};
+
+const TextEditorWithStyles: React.FC<{
+  item: BoardItem;
+  activeFragmentIndex: number | null;
+  textEditRef: React.RefObject<HTMLParagraphElement>;
+  onUpdate: (item: BoardItem) => void;
+  itemRef: React.MutableRefObject<BoardItem>;
+  setIsEditingText: (v: boolean) => void;
+}> = ({ item, activeFragmentIndex, textEditRef, onUpdate, itemRef, setIsEditingText }) => {
+  const isFragmentMode = item.textFragments && item.textFragments.length > 0 && activeFragmentIndex !== null;
+  const currentFrag = isFragmentMode ? item.textFragments[activeFragmentIndex] : null;
+  const fragColor = currentFrag?.color || item.textColor || '#000000';
+  const fragShadowColor = currentFrag?.shadowColor || item.textShadowColor || '#FFFFFF';
+  const fragHasShadow = currentFrag?.hasShadow ?? item.textShadow ?? true;
+  const fragShadowStyle = fragHasShadow 
+    ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
+    : 'none';
+
+  return (
+    <p
+      ref={textEditRef}
+      contentEditable
+      suppressContentEditableWarning
+      className={`whitespace-pre-wrap break-words pixel-text outline-none cursor-text pointer-events-auto`}
+      style={{
+        color: fragColor,
+        fontFamily: item.fontFamily || 'inherit',
+        textShadow: fragShadowStyle,
+        fontSize: `${item.fontSize || 24}px`,
+        lineHeight: 1.2,
+        textAlign: item.textAlign || 'center',
+        textTransform: item.textTransform || 'none',
+        minWidth: '10px',
+        caretColor: '#f97316',
+      }}
+      onBlur={(e) => {
+        const newText = e.currentTarget.innerText;
+        setIsEditingText(false);
+        if (item.textFragments && item.textFragments.length > 0) {
+          const newFragments = [...item.textFragments];
+          if (activeFragmentIndex !== null && newFragments[activeFragmentIndex]) {
+            newFragments[activeFragmentIndex] = { ...newFragments[activeFragmentIndex], text: newText };
+            onUpdate({ ...itemRef.current, text: newFragments.map(f => f.text).join(''), textFragments: newFragments });
+          }
+        } else {
+          if (newText !== item.text) {
+            onUpdate({ ...itemRef.current, text: newText, textFragments: [] });
+          }
+        }
+      }}
+      onKeyDown={(e) => {
+        e.stopPropagation();
+        if (e.key === 'Escape') {
+          setIsEditingText(false);
+          if (textEditRef.current) textEditRef.current.blur();
+        }
+      }}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
+      {isFragmentMode ? item.textFragments[activeFragmentIndex]?.text || '' : item.text}
+    </p>
+  );
+};
+
+const TextDisplay: React.FC<{
+  item: BoardItem;
+  isBoxItem: boolean;
+  textShadowStyle: string;
+  setActiveFragmentIndex: (i: number) => void;
+  setIsEditingText: (v: boolean) => void;
+  textEditRef: React.RefObject<HTMLParagraphElement>;
+}> = ({ item, isBoxItem, textShadowStyle, setActiveFragmentIndex, setIsEditingText, textEditRef }) => {
+  return (
+    <p
+      className={`whitespace-pre-wrap break-words pixel-text`}
+      style={{
+        color: item.textColor || '#000000',
+        fontFamily: item.fontFamily || 'inherit',
+        textShadow: (item.textFragments && item.textFragments.length > 0) ? 'none' : textShadowStyle,
+        fontSize: `${item.fontSize || 24}px`,
+        lineHeight: 1.2,
+        textAlign: item.textAlign || 'center',
+        textTransform: item.textTransform || 'none',
+        textDecoration: (isBoxItem && item.checked) ? 'line-through' : 'none',
+        opacity: (isBoxItem && item.checked) ? 0.6 : 1,
+      }}
+    >
+      {item.textFragments && item.textFragments.length > 0 ? (
+        item.textFragments.map((frag, i) => {
+          const fragShadowColor = frag.shadowColor || item.textShadowColor || '#FFFFFF';
+          const fragHasShadow = frag.hasShadow ?? item.textShadow ?? true;
+          const fragShadowStyle = fragHasShadow
+            ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
+            : 'none';
+          return (
+            <span 
+              key={`frag-${i}`}
+              data-fragment-index={i}
+              style={{ color: frag.color || item.textColor || '#000000', textShadow: fragShadowStyle }}
+              onClick={(e) => { e.stopPropagation(); setActiveFragmentIndex(i); }}
+              onMouseDown={(e) => { e.stopPropagation(); }}
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setActiveFragmentIndex(i);
+                setIsEditingText(true);
+                setTimeout(() => textEditRef.current?.focus(), 0);
+              }}
+              className="cursor-text"
+            >
+              {frag.text}
+            </span>
+          );
+        })
+      ) : (
+        item.text
+      )}
+    </p>
   );
 };
 
