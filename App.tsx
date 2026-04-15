@@ -118,18 +118,14 @@ const App: React.FC = () => {
     event.target.value = '';
   };
 
-  const minX = Math.min(0, ...(activeBoard?.items || []).map(i => i.x));
-  const minY = Math.min(0, ...(activeBoard?.items || []).map(i => i.y));
-  const maxX = Math.max(3000, ...(activeBoard?.items || []).map(i => i.x + (i.width || 0)));
-  const maxY = Math.max(2000, ...(activeBoard?.items || []).map(i => i.y + (i.height || 0)));
-
-  const canvasOffsetX = Math.max(0, -minX) + 2000;
-  const canvasOffsetY = Math.max(0, -minY) + 2000;
-  const canvasWidth = (maxX - minX) + 4000;
-  const canvasHeight = (maxY - minY) + 4000;
+  // STABLE offsets - these MUST NOT depend on item positions or we get a feedback loop
+  const canvasOffsetX = 10000;
+  const canvasOffsetY = 10000;
+  const canvasWidth = 20000;
+  const canvasHeight = 20000;
 
   const {
-    handleAddItem, handleAddCounter, handleAddTimer, handleAddFile, handleAddCheckbox, handleAddPlainText, handleAddBox, handleBatchAddItems, handleDuplicateSelected, handleDeleteSelected, handleCopySelected,
+    handleAddItem, handleAddCounter, handleAddTimer, handleAddFile, handleAddCheckbox, handleAddPlainText, handleAddBox, handleAddRichBox, handleBatchAddItems, handleDuplicateSelected, handleDeleteSelected, handleCopySelected,
     handlePaste, handleBackgroundFileChange, handleSaveAssetImages,
     handleScreenshot, handleStartEditItem, handleResetCamera
   } = useBoardActions({
@@ -450,6 +446,7 @@ const App: React.FC = () => {
         handleAddCheckbox={handleAddCheckbox}
         handleAddPlainText={handleAddPlainText}
         handleAddBox={handleAddBox}
+        handleAddRichBox={handleAddRichBox}
         setIsMobileMode={setIsMobileMode}
         handleStartTutorial={handleStartTutorial}
         handleExportToDisk={handleExportToDisk}
@@ -746,6 +743,7 @@ const App: React.FC = () => {
           onSendToBoard={handleSendItemToBoard}
           titleImages={titleImages}
           textboxImages={textboxImages}
+          activeFragmentIndex={editingItem.editingFragmentIndex}
         />
       )}
 

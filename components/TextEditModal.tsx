@@ -23,6 +23,7 @@ interface TextEditModalProps {
   onSendToBoard: (itemId: string, targetBoardIndex: number) => void;
   titleImages: TitleImageCollections;
   textboxImages: TextboxImageCollections;
+  activeFragmentIndex?: number;
 }
 
 // A curated palette of basic colors suitable for pixel art.
@@ -61,9 +62,11 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
   activeBoardIndex,
   onSendToBoard,
   titleImages,
-  textboxImages
+  textboxImages,
+  activeFragmentIndex
 }) => {
   const [editedItem, setEditedItem] = useState<BoardItem>(item);
+  const [focusedFragmentIndex, setFocusedFragmentIndex] = useState<number | undefined>(activeFragmentIndex ?? item.editingFragmentIndex);
   const itemRef = useRef(item);
   const [activeTab, setActiveTab] = useState<'text' | 'style' | 'effects' | 'anim'>('text');
   const [currentCollection, setCurrentCollection] = useState<string>('x1');
@@ -73,6 +76,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
 
   useEffect(() => {
     setEditedItem(item);
+    setFocusedFragmentIndex(item.editingFragmentIndex);
     if (item.blinkInterval) {
       setBpm(Math.round(60000 / item.blinkInterval));
     }
@@ -193,7 +197,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
     });
   };
 
-  const handleFragmentChange = (index: number, field: 'text' | 'color', value: string) => {
+  const handleFragmentChange = (index: number, field: 'text' | 'color' | 'shadowColor' | 'hasShadow', value: any) => {
     setEditedItem(prev => {
       const fragments = [...(prev.textFragments || [])];
       fragments[index] = { ...fragments[index], [field]: value };
@@ -256,7 +260,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
     : 'none';
 
   const isTitle = item.type === ItemType.Title;
-  const isNineSliceItem = item.type === ItemType.Box;
+  const isNineSliceItem = item.type === ItemType.Box || item.type === ItemType.RichBox;
   const collections = isTitle ? titleImages : textboxImages;
   const collectionKeys = isTitle ? ['x1/2', 'x1', 'x2', 'x3', 'x4'] : ['x1', 'x4', 'x16'];
 
@@ -355,7 +359,7 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                     style={{
                       color: editedItem.textColor || '#000000',
                       fontFamily: editedItem.fontFamily || 'inherit',
-                      textShadow: textShadowStyle,
+                      textShadow: (editedItem.textFragments && editedItem.textFragments.length > 0) ? 'none' : textShadowStyle,
                       fontSize: `${editedItem.fontSize || 24}px`,
                       lineHeight: 1.2,
                       textAlign: editedItem.textAlign || 'center',
@@ -365,11 +369,18 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                     }}
                   >
                     {editedItem.textFragments && editedItem.textFragments.length > 0 ? (
-                      editedItem.textFragments.map((frag, i) => (
-                        <span key={i} style={{ color: frag.color || editedItem.textColor || '#000000' }}>
-                          {frag.text}
-                        </span>
-                      ))
+                      editedItem.textFragments.map((frag, i) => {
+                        const fragShadowColor = frag.shadowColor || editedItem.textShadowColor || '#FFFFFF';
+                        const fragHasShadow = frag.hasShadow ?? editedItem.textShadow ?? true;
+                        const fragShadowStyle = fragHasShadow
+                          ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
+                          : 'none';
+                        return (
+                          <span key={i} style={{ color: frag.color || editedItem.textColor || '#000000', textShadow: fragShadowStyle }}>
+                            {frag.text}
+                          </span>
+                        );
+                      })
                     ) : (
                       editedItem.text || 'Aa Bb Cc'
                     )}
@@ -830,35 +841,78 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                 </div>
               </div>
 
+              <div className="flex justify-between items-center bg-black/40 p-1 mb-1 rounded border border-white/5 mt-1">
+                <label className="flex items-center gap-2 cursor-pointer font-bold px-2">
+                  <input type="checkbox" name="textShadow" checked={editedItem.textShadow ?? true} onChange={handleInputChange} className="w-4 h-4" />
+                  <span className="text-xs">ACTIVAR SOMBRA</span>
+                </label>
+              </div>
+
               {editedItem.textFragments && editedItem.textFragments.length > 0 ? (
-                <div className="flex flex-col gap-2 max-h-48 overflow-y-auto p-1 pixel-panel bg-black/20">
+                <div className="flex flex-col gap-2 max-h-56 overflow-y-auto p-1 pixel-panel bg-black/20">
                   {editedItem.textFragments.map((frag, i) => (
-                    <div key={i} className="flex gap-2 items-start bg-black/30 p-2 rounded border border-white/5">
-                      <div className="flex flex-col gap-1 flex-1">
+                    <div 
+                      key={i} 
+                      className={`flex gap-2 items-start bg-black/30 p-2 rounded border ${focusedFragmentIndex === i ? 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'border-white/5'} transition-all`}
+                      onClick={() => setFocusedFragmentIndex(i)}
+                    >
+                      <div className="flex flex-col gap-2 flex-1">
                         <textarea
                           value={frag.text}
                           onChange={(e) => handleFragmentChange(i, 'text', e.target.value)}
                           className="pixel-input text-sm w-full h-12 resize-none"
                           placeholder="Texto del fragmento..."
                         />
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-4">
+                          <label className="text-xs uppercase opacity-70 w-12 text-right">Texto:</label>
                           <input
                             type="color"
                             value={frag.color || editedItem.textColor || '#000000'}
                             onChange={(e) => handleFragmentChange(i, 'color', e.target.value)}
-                            className="w-5 h-5 cursor-pointer"
+                            className="w-6 h-6 cursor-pointer"
                           />
                           <div className="flex flex-wrap gap-1">
-                            {BASIC_COLORS.slice(0, 8).map(color => (
+                            {BASIC_COLORS.map(color => (
                               <button
-                                key={color}
+                                key={`frag-color-${i}-${color}`}
+                                type="button"
                                 onClick={() => handleFragmentChange(i, 'color', color)}
-                                className="w-4 h-4 border border-white/10"
+                                className={`w-5 h-5 border transition-transform ${frag.color === color ? 'border-white scale-110 shadow-sm' : 'border-white/10 hover:scale-105'}`}
                                 style={{ backgroundColor: color }}
                               />
                             ))}
                           </div>
                         </div>
+                        {(editedItem.textShadow ?? true) && (
+                          <div className="flex items-center gap-4">
+                            <label className="flex items-center gap-1 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={frag.hasShadow ?? editedItem.textShadow ?? true}
+                                onChange={(e) => handleFragmentChange(i, 'hasShadow', e.target.checked)}
+                                className="w-3 h-3"
+                              />
+                              <span className="text-xs uppercase opacity-70 w-12 text-right">Sombra:</span>
+                            </label>
+                            <input
+                              type="color"
+                              value={frag.shadowColor || editedItem.textShadowColor || '#FFFFFF'}
+                              onChange={(e) => handleFragmentChange(i, 'shadowColor', e.target.value)}
+                              className="w-6 h-6 cursor-pointer"
+                            />
+                            <div className="flex flex-wrap gap-1">
+                              {BASIC_COLORS.map(color => (
+                                <button
+                                  key={`frag-shadow-${i}-${color}`}
+                                  type="button"
+                                  onClick={() => handleFragmentChange(i, 'shadowColor', color)}
+                                  className={`w-5 h-5 border transition-transform ${frag.shadowColor === color ? 'border-white scale-110 shadow-sm' : 'border-white/10 hover:scale-105'}`}
+                                  style={{ backgroundColor: color }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => handleRemoveFragment(i)}
@@ -870,13 +924,59 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                   ))}
                 </div>
               ) : (
-                <textarea
-                  name="text"
-                  value={editedItem.text}
-                  onChange={handleInputChange}
-                  className="pixel-input text-lg w-full h-20 resize-y"
-                  placeholder="Escribe tu texto aquí..."
-                />
+                <div className="flex flex-col gap-2 bg-black/20 p-2 rounded border border-white/5">
+                  <textarea
+                    name="text"
+                    value={editedItem.text}
+                    onChange={handleInputChange}
+                    className="pixel-input text-lg w-full h-20 resize-y"
+                    placeholder="Escribe tu texto aquí..."
+                  />
+                  <div className="flex items-center gap-4 mt-1">
+                    <label className="text-xs uppercase opacity-70 w-12 text-right">Texto:</label>
+                    <input
+                      type="color"
+                      name="textColor"
+                      value={editedItem.textColor || '#000000'}
+                      onChange={handleInputChange}
+                      className="w-6 h-6 cursor-pointer"
+                    />
+                    <div className="flex flex-wrap gap-1">
+                      {BASIC_COLORS.map(color => (
+                        <button
+                          key={`main-color-${color}`}
+                          type="button"
+                          onClick={() => handleColorPaletteClick('textColor', color)}
+                          className={`w-5 h-5 border transition-transform ${editedItem.textColor === color ? 'border-white scale-110 shadow-sm' : 'border-white/10 hover:scale-105'}`}
+                          style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {(editedItem.textShadow ?? true) && (
+                    <div className="flex items-center gap-4">
+                      <label className="text-xs uppercase opacity-70 w-12 text-right">Sombra:</label>
+                      <input
+                        type="color"
+                        name="textShadowColor"
+                        value={editedItem.textShadowColor || '#FFFFFF'}
+                        onChange={handleInputChange}
+                        className="w-6 h-6 cursor-pointer"
+                      />
+                      <div className="flex flex-wrap gap-1">
+                        {BASIC_COLORS.map(color => (
+                          <button
+                            key={`main-shadow-${color}`}
+                            type="button"
+                            onClick={() => handleColorPaletteClick('textShadowColor', color)}
+                            className={`w-5 h-5 border transition-transform ${editedItem.textShadowColor === color ? 'border-white scale-110 shadow-sm' : 'border-white/10 hover:scale-105'}`}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -888,6 +988,26 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
             <div className="flex flex-col gap-1">
               <label className="text-sm uppercase opacity-70">Tamaño</label>
               <input type="number" name="fontSize" value={editedItem.fontSize || 24} onChange={handleInputChange} className="pixel-input text-lg" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm uppercase opacity-70">Ancho (px)</label>
+              <input
+                type="number"
+                value={Math.round(editedItem.width)}
+                onChange={(e) => setEditedItem(prev => ({ ...prev, width: Math.max(10, Number(e.target.value)) }))}
+                className="pixel-input text-lg"
+                min="10"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-sm uppercase opacity-70">Alto (px)</label>
+              <input
+                type="number"
+                value={Math.round(editedItem.height)}
+                onChange={(e) => setEditedItem(prev => ({ ...prev, height: Math.max(10, Number(e.target.value)) }))}
+                className="pixel-input text-lg"
+                min="10"
+              />
             </div>
             <div className="flex flex-col gap-1 col-span-2">
               <label className="text-sm uppercase opacity-70">Alineación y Formato</label>
@@ -914,51 +1034,6 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                 </label>
               </div>
             </div>
-            <div className="flex flex-col gap-1 col-span-2">
-              <label className="text-sm uppercase opacity-70">Color de Texto</label>
-              <div className="flex gap-2 items-center">
-                <div className="pixel-input p-1 flex items-center flex-1">
-                  <input type="color" name="textColor" value={editedItem.textColor || '#000000'} onChange={handleInputChange} className="w-6 h-6" />
-                  <input type="text" name="textColor" value={editedItem.textColor || '#000000'} onChange={handleInputChange} className="bg-transparent border-none text-white text-xs w-full ml-2 uppercase" />
-                </div>
-                <div className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="textShadow" name="textShadow" checked={editedItem.textShadow ?? true} onChange={handleInputChange} className="w-5 h-5" />
-                  <label htmlFor="textShadow" className="text-xs font-bold">SOMBRA</label>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {BASIC_COLORS.map(color => (
-                  <button
-                    key={`text-${color}`}
-                    type="button"
-                    className="w-5 h-5 border border-[var(--pixel-border-color)] cursor-pointer hover:scale-110 transition-transform"
-                    style={{ backgroundColor: color }}
-                    onClick={() => handleColorPaletteClick('textColor', color)}
-                  />
-                ))}
-              </div>
-            </div>
-            {(editedItem.textShadow ?? true) && (
-              <div className="flex flex-col gap-1 col-span-2 border-t border-white/10 pt-2">
-                <label className="text-sm uppercase opacity-70">Color de Sombra</label>
-                <div className="pixel-input p-1 flex items-center">
-                  <input type="color" name="textShadowColor" value={editedItem.textShadowColor || '#FFFFFF'} onChange={handleInputChange} className="w-6 h-6" />
-                  <input type="text" name="textShadowColor" value={editedItem.textShadowColor || '#FFFFFF'} onChange={handleInputChange} className="bg-transparent border-none text-white text-xs w-full ml-2 uppercase" />
-                </div>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {BASIC_COLORS.map(color => (
-                    <button
-                      key={`shadow-${color}`}
-                      type="button"
-                      className="w-5 h-5 border border-[var(--pixel-border-color)] cursor-pointer hover:scale-110 transition-transform"
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleColorPaletteClick('textShadowColor', color)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
           </div>
         </div>
       </div>

@@ -43,6 +43,7 @@ interface ToolbarProps {
   handleAddCheckbox: () => void;
   handleAddPlainText: () => void;
   handleAddBox: () => void;
+  handleAddRichBox?: () => void;
   setIsMobileMode: React.Dispatch<React.SetStateAction<boolean>>;
   handleStartTutorial: () => void;
   handleExportToDisk: () => void;
@@ -82,6 +83,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   handleAddCheckbox,
   handleAddPlainText,
   handleAddBox,
+  handleAddRichBox,
   setIsMobileMode,
   handleStartTutorial,
   handleExportToDisk,
@@ -169,7 +171,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </button>
           {activeCategory === 'add' && (
             <div className="absolute top-full left-0 mt-1 pixel-panel min-w-[220px] flex flex-col p-1 bg-slate-900 shadow-2xl max-h-[70vh] overflow-y-auto">
-              <MenuItem icon={<TextboxIcon />} label="Caja (9-Slice)" onClick={handleAddBox} color="bg-violet-600" />
+              <MenuItem icon={<TextboxIcon />} label="Caja" onClick={handleAddBox} color="bg-violet-600" />
+              <MenuItem icon={<TextboxIcon />} label="Caja (Exp.)" onClick={handleAddRichBox || (() => {})} color="bg-amber-600" />
               <div className="h-0.5 bg-slate-800 my-1" />
               <MenuItem icon={<PixelIcon />} label="Ilustración" onClick={() => setActiveModal('addPixel')} color="bg-yellow-500" />
               <MenuItem icon={<SpriteIcon />} label="Sprite" onClick={() => setActiveModal('addSprite')} color="bg-green-600" />

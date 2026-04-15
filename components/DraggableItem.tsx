@@ -7,7 +7,7 @@ interface DraggableItemProps {
   onUpdate: (item: BoardItem) => void;
   onDelete: (id: string) => void;
   onDuplicate: (id: string) => void;
-  onEdit: (item: BoardItem) => void;
+  onEdit: (item: BoardItem, fragmentIndex?: number) => void;
   onSendToBack: (id: string) => void;
   onToggleInventory: (item: BoardItem) => void;
   inventory: BoardItem[];
@@ -41,6 +41,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
   const [currentImageUrl, setCurrentImageUrl] = useState(item.imageUrl);
   const [currentFrameIndex, setCurrentFrameIndex] = useState(0);
   const [isEditingText, setIsEditingText] = useState(false);
+  const [activeFragmentIndex, setActiveFragmentIndex] = useState<number | null>(null);
   const [isResizing, setIsResizing] = useState(false);
   const [isDraggingText, setIsDraggingText] = useState(false);
   const [wasSaved, setWasSaved] = useState(false);
@@ -201,6 +202,11 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       document.removeEventListener('mouseup', handleResizeMouseUp);
     };
   }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
+
+  // Keep itemRef always in sync with the latest item prop (position, text, etc.)
+  useEffect(() => {
+    itemRef.current = item;
+  }, [item]);
 
   // MOTOR RÍTMICO ULTRA-SIMPLIFICADO
   useEffect(() => {
@@ -502,14 +508,14 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
     }
   }, [item.fileContent, item.fileName]);
 
-  const isTextEditable = item.type === ItemType.Title || item.type === ItemType.Textbox || item.type === ItemType.Counter || item.type === ItemType.Timer || item.type === ItemType.File || item.type === ItemType.Checkbox || item.type === ItemType.PlainText || item.type === ItemType.Box;
+  const isTextEditable = item.type === ItemType.Title || item.type === ItemType.Textbox || item.type === ItemType.Counter || item.type === ItemType.Timer || item.type === ItemType.File || item.type === ItemType.Checkbox || item.type === ItemType.PlainText || item.type === ItemType.Box || item.type === ItemType.RichBox;
   const isMusicItem = item.type === ItemType.Music;
   const isCounterItem = item.type === ItemType.Counter;
   const isTimerItem = item.type === ItemType.Timer;
   const isCheckboxItem = item.type === ItemType.Checkbox;
   const isPlainTextItem = item.type === ItemType.PlainText;
-  const isNineSliceItem = item.type === ItemType.Box;
-  const isBoxItem = item.type === ItemType.Box;
+  const isNineSliceItem = item.type === ItemType.Box || item.type === ItemType.RichBox;
+  const isBoxItem = item.type === ItemType.Box || item.type === ItemType.RichBox;
 
   const handleCheckboxToggle = useCallback(() => {
     onUpdate({ ...item, checked: !item.checked });
@@ -606,20 +612,13 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
       onContextMenu={(e) => e.preventDefault()}
       onDoubleClick={(e) => {
         if (!(e.target as HTMLElement).closest('button')) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (item.textFragments && item.textFragments.length > 0) {
+            setActiveFragmentIndex(0);
+          }
           setIsEditingText(true);
-          // Esperar al siguiente tick para que el DOM se actualice antes de hacer foco
-          setTimeout(() => {
-            if (textEditRef.current) {
-              textEditRef.current.focus();
-              // Mover el cursor al final del texto
-              const range = document.createRange();
-              const sel = window.getSelection();
-              range.selectNodeContents(textEditRef.current);
-              range.collapse(false);
-              sel?.removeAllRanges();
-              sel?.addRange(range);
-            }
-          }, 0);
+          setTimeout(() => textEditRef.current?.focus(), 0);
         }
       }}
     >
@@ -645,7 +644,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
           !isPlainTextItem && <img src={currentImageUrl} alt="draggable item" className="w-full h-full pointer-events-none" referrerPolicy="no-referrer" style={{ filter: activeBoxFilter }} />
         )}
         <div
-          className={`text-container-move absolute inset-0 p-4 flex items-center justify-center pointer-events-none`}
+          className={`text-container-move absolute inset-0 p-4 flex items-center justify-center`}
           style={{
             transform: `translate(${item.textOffsetX || 0}px, ${item.textOffsetY || 0}px)`
           }}
@@ -682,8 +681,16 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
                 onBlur={(e) => {
                   const newText = e.currentTarget.innerText;
                   setIsEditingText(false);
-                  if (newText !== item.text) {
-                    onUpdate({ ...itemRef.current, text: newText, textFragments: [] });
+                  if (item.textFragments && item.textFragments.length > 0) {
+                    const newFragments = [...item.textFragments];
+                    if (activeFragmentIndex !== null && newFragments[activeFragmentIndex]) {
+                      newFragments[activeFragmentIndex] = { ...newFragments[activeFragmentIndex], text: newText };
+                      onUpdate({ ...itemRef.current, text: newFragments.map(f => f.text).join(''), textFragments: newFragments });
+                    }
+                  } else {
+                    if (newText !== item.text) {
+                      onUpdate({ ...itemRef.current, text: newText, textFragments: [] });
+                    }
                   }
                 }}
                 onKeyDown={(e) => {
@@ -695,7 +702,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
                 }}
                 onMouseDown={(e) => e.stopPropagation()}
               >
-                {item.text}
+                {item.textFragments && item.textFragments.length > 0 && activeFragmentIndex !== null ? item.textFragments[activeFragmentIndex]?.text || '' : item.text}
               </p>
             ) : (
               <p
@@ -703,7 +710,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
                 style={{
                   color: item.textColor || '#000000',
                   fontFamily: item.fontFamily || 'inherit',
-                  textShadow: textShadowStyle,
+                  textShadow: (item.textFragments && item.textFragments.length > 0) ? 'none' : textShadowStyle,
                   fontSize: `${item.fontSize || 24}px`,
                   lineHeight: 1.2,
                   textAlign: item.textAlign || 'center',
@@ -713,11 +720,33 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
                 }}
               >
                 {item.textFragments && item.textFragments.length > 0 ? (
-                  item.textFragments.map((frag, i) => (
-                    <span key={i} style={{ color: frag.color || item.textColor || '#000000' }}>
-                      {frag.text}
-                    </span>
-                  ))
+                  item.textFragments.map((frag, i) => {
+                    const fragShadowColor = frag.shadowColor || item.textShadowColor || '#FFFFFF';
+                    const fragHasShadow = frag.hasShadow ?? item.textShadow ?? true;
+                    const fragShadowStyle = fragHasShadow
+                      ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
+                      : 'none';
+                    return (
+                      <span 
+                        key={`frag-${i}`}
+                        data-fragment-index={i}
+                        style={{ color: frag.color || item.textColor || '#000000', textShadow: fragShadowStyle }}
+                        onClick={(e) => { e.stopPropagation(); console.log('CLICK FRAGMENT', i); setActiveFragmentIndex(i); }}
+                        onMouseDown={(e) => { e.stopPropagation(); console.log('MOUSE DOWN FRAGMENT', i); }}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('DOUBLE CLICK FRAGMENT', i);
+                          setActiveFragmentIndex(i);
+                          setIsEditingText(true);
+                          setTimeout(() => textEditRef.current?.focus(), 0);
+                        }}
+                        className="cursor-text fragment-span"
+                      >
+                        {frag.text}
+                      </span>
+                    );
+                  })
                 ) : (
                   item.text
                 )}

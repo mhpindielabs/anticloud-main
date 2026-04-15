@@ -106,7 +106,7 @@ export const useBoardActions = ({
         fileContent: type === ItemType.File ? '' : undefined,
         checked: type === ItemType.Checkbox ? false : undefined,
         textColor: type === ItemType.PlainText ? '#FFFFFF' : '#000000',
-        fontFamily: (type === ItemType.Title || type === ItemType.Textbox || type === ItemType.Counter || type === ItemType.Timer || type === ItemType.PlainText || type === ItemType.Box) ? FONT_FACES[1] : FONT_FACES[0],
+        fontFamily: (type === ItemType.Title || type === ItemType.Textbox || type === ItemType.Counter || type === ItemType.Timer || type === ItemType.PlainText || type === ItemType.Box || type === ItemType.RichBox) ? FONT_FACES[1] : FONT_FACES[0],
         fontSize: 24,
         textShadow: type !== ItemType.PlainText,
         textShadowColor: '#FFFFFF',
@@ -317,7 +317,7 @@ export const useBoardActions = ({
     }
   }, [activeBoardIndex, boards, boardRef, setIsCapturing]);
 
-  const handleStartEditItem = (item: BoardItem) => {
+  const handleStartEditItem = (item: BoardItem, fragmentIndex?: number) => {
     setBoards(prev => {
       const currentLength = prev.length;
       if (currentLength < 3) {
@@ -328,7 +328,10 @@ export const useBoardActions = ({
       }
       return prev;
     });
-    setEditingItem(item);
+    const itemWithFragment = fragmentIndex !== undefined 
+      ? { ...item, editingFragmentIndex: fragmentIndex } 
+      : item;
+    setEditingItem(itemWithFragment);
   };
 
   const handleAddCounter = useCallback(() => {
@@ -360,6 +363,16 @@ export const useBoardActions = ({
     });
   }, [handleAddItem]);
 
+  const handleAddRichBox = useCallback(() => {
+    handleAddItem(ItemType.RichBox, DEFAULT_BOX_IMAGE_URL, {
+      borderSlice: DEFAULT_BOX_BORDER_SLICE,
+      text: '¡Doble click!',
+      htmlContent: '<span>¡Doble click!</span>',
+      width: 200,
+      height: 80
+    });
+  }, [handleAddItem]);
+
   const handleResetCamera = useCallback(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -383,6 +396,7 @@ export const useBoardActions = ({
     handleAddCheckbox,
     handleAddPlainText,
     handleAddBox,
+    handleAddRichBox,
     handleBatchAddItems,
     handleDuplicateSelected,
     handleDeleteSelected,

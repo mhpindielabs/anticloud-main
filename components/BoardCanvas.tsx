@@ -17,7 +17,7 @@ interface BoardCanvasProps {
   handleUpdateItem: (updatedItem: BoardItem, selectedItemIds: string[]) => void;
   handleDeleteItem: (id: string, setSelectedItemIds: any, setSelectedItemId: any) => void;
   handleDuplicateItem: (id: string) => void;
-  handleStartEditItem: (item: BoardItem) => void;
+  handleStartEditItem: (item: BoardItem, fragmentIndex?: number) => void;
   handleSendItemToBack: (id: string) => void;
   onToggleInventory: (item: BoardItem) => void;
   inventory: BoardItem[];

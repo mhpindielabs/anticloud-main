@@ -16,13 +16,13 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   {
     elementId: 'tutorial-add-btn',
     title: 'Añadir Elementos',
-    text: 'Desde aquí puedes añadir todo tipo de objetos: desde Cajas 9-Slice hasta herramientas como Contadores y Checkboxes.',
+    text: 'Desde aquí puedes añadir todo tipo de objetos: desde Cajas hasta herramientas como Contadores y Checkboxes.',
     position: 'right',
   },
   {
     elementId: 'tutorial-add-btn',
-    title: 'Cajas 9-Slice',
-    text: 'Usa la "Caja (9-Slice)" para crear áreas de texto con bordes que no se deforman. ¡Es el elemento base de la pizarra!',
+    title: 'Cajas',
+    text: 'Usa la "Caja" para crear áreas de texto con bordes que no se deforman. ¡Es el elemento base de la pizarra!',
     position: 'right',
   },
   {
