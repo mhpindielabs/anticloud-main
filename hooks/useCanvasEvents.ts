@@ -39,13 +39,13 @@ export const useCanvasEvents = ({
 }: UseCanvasEventsProps) => {
   const isPanning = useRef(false);
   const panStart = useRef({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
-  const selectionStartPoint = useRef<{x: number, y: number} | null>(null);
+  const selectionStartPoint = useRef<{ x: number, y: number } | null>(null);
   const scrollDirection = useRef<'up' | 'down' | 'left' | 'right' | null>(null);
   const scrollAnimationRef = useRef<number | null>(null);
 
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
-    
+
     const viewport = viewportRef.current;
     if (!viewport) return;
 
@@ -58,7 +58,7 @@ export const useCanvasEvents = ({
 
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
     const newZoom = Math.max(0.1, Math.min(zoom * delta, 5));
-    
+
     if (newZoom !== zoom) {
       setZoom(newZoom);
 
@@ -108,7 +108,7 @@ export const useCanvasEvents = ({
     const rect = boardRef.current.getBoundingClientRect();
     const currentX = (e.clientX - rect.left) / zoom;
     const currentY = (e.clientY - rect.top) / zoom;
-    
+
     const finalX = Math.min(selectionStartPoint.current.x, currentX);
     const finalY = Math.min(selectionStartPoint.current.y, currentY);
     const finalWidth = Math.abs(selectionStartPoint.current.x - currentX);
@@ -241,8 +241,8 @@ export const useCanvasEvents = ({
   const handleSelectionMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!boardRef.current) return;
     const rect = boardRef.current.getBoundingClientRect();
-    const boardX = (e.clientX - rect.left) / zoom;
-    const boardY = (e.clientY - rect.top) / zoom;
+    let boardX = (e.clientX - rect.left) / zoom;
+    let boardY = (e.clientY - rect.top) / zoom;
     if (isGridVisible) {
       boardX = Math.round(boardX / GRID_SIZE) * GRID_SIZE;
       boardY = Math.round(boardY / GRID_SIZE) * GRID_SIZE;
@@ -256,7 +256,7 @@ export const useCanvasEvents = ({
   const scrollBoard = useCallback(() => {
     if (!viewportRef.current || !scrollDirection.current) return;
     const SCROLL_SPEED = 5;
-    switch(scrollDirection.current) {
+    switch (scrollDirection.current) {
       case 'up': viewportRef.current.scrollTop -= SCROLL_SPEED; break;
       case 'down': viewportRef.current.scrollTop += SCROLL_SPEED; break;
       case 'left': viewportRef.current.scrollLeft -= SCROLL_SPEED; break;
@@ -272,7 +272,7 @@ export const useCanvasEvents = ({
 
   const handleMoveEnd = useCallback(() => {
     scrollDirection.current = null;
-    if(scrollAnimationRef.current) cancelAnimationFrame(scrollAnimationRef.current);
+    if (scrollAnimationRef.current) cancelAnimationFrame(scrollAnimationRef.current);
   }, []);
 
   return {
