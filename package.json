@@ -3,27 +3,11 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "tsc --noEmit",
-    "pack:electron": "vite build && electron-builder --windows nsis"
-  },
-  "build": {
-    "appId": "com.anticloud.v1",
-    "productName": "AntiCloud",
-    "directories": {
-      "output": "dist_electron"
-    },
-    "files": [
-      "dist/**/*",
-      "electron/**/*"
-    ],
-    "win": {
-      "target": "nsis"
-    }
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "idb-keyval": "^6.2.2",
@@ -32,8 +16,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
-    "electron": "^41.0.4",
-    "electron-builder": "^26.8.1",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
