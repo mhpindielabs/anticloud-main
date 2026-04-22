@@ -9,8 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "tsc --noEmit",
-    "pack:electron": "vite build && electron-builder --windows nsis",
-    "pack:tauri": "vite build && tauri build"
+    "pack:electron": "vite build && electron-builder --windows nsis"
   },
   "build": {
     "appId": "com.anticloud.v1",
@@ -32,8 +31,6 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/cli": "^2.10.1",
     "@types/node": "^22.14.0",
     "electron": "^41.0.4",
     "electron-builder": "^26.8.1",

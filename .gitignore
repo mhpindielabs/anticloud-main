@@ -13,7 +13,6 @@ dist-ssr
 dist_electron
 build
 builds
-src-tauri/target
 *.local
 
 # Editor directories and files
