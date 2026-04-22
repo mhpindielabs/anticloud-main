@@ -41,11 +41,11 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
       const matchesSearch = chord.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRoot = selectedRoot ? chord.startsWith(selectedRoot) : true;
       const matchesSuffix = selectedSuffix !== null ? chord.endsWith(selectedSuffix) : true;
-      
+
       // Special handling for root matches to avoid C# matching C
       if (selectedRoot && chord.length > selectedRoot.length) {
-          const nextChar = chord[selectedRoot.length];
-          if (nextChar === '#' || nextChar === 'b') return chord.startsWith(selectedRoot);
+        const nextChar = chord[selectedRoot.length];
+        if (nextChar === '#' || nextChar === 'b') return chord.startsWith(selectedRoot);
       }
 
       return matchesSearch && matchesRoot && matchesSuffix;
@@ -67,7 +67,7 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
   return (
     <Modal onClose={onClose} title="Añadir Acorde" className="max-w-5xl">
       <div className="p-6 flex flex-col gap-6 max-h-[85vh] overflow-y-auto">
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Left Column: Configuration (4 cols) */}
           <div className="lg:col-span-4 flex flex-col gap-6">
@@ -76,9 +76,9 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
               <div className="relative w-full h-32 pixel-content-box flex items-center justify-center bg-[#203c56] overflow-hidden">
                 <img src={previewImage} alt="" className="w-full h-full object-contain opacity-50" referrerPolicy="no-referrer" />
                 <div className="absolute inset-0 flex items-center justify-center p-2">
-                  <span 
+                  <span
                     className="text-3xl font-bold text-center break-all"
-                    style={{ 
+                    style={{
                       color: selectedColor,
                       textShadow: `2px 2px ${selectedShadowColor}, -2px -2px ${selectedShadowColor}, 2px -2px ${selectedShadowColor}, -2px 2px ${selectedShadowColor}`
                     }}
@@ -117,9 +117,9 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
                   />
                 ))}
                 <div className="relative w-full aspect-square pixel-panel bg-black/20 flex items-center justify-center overflow-hidden">
-                  <input 
-                    type="color" 
-                    value={selectedColor} 
+                  <input
+                    type="color"
+                    value={selectedColor}
                     onChange={(e) => setSelectedColor(e.target.value)}
                     className="absolute inset-0 w-full h-full scale-150 cursor-pointer opacity-0"
                   />
@@ -140,9 +140,9 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
                   />
                 ))}
                 <div className="relative w-full aspect-square pixel-panel bg-black/20 flex items-center justify-center overflow-hidden">
-                  <input 
-                    type="color" 
-                    value={selectedShadowColor} 
+                  <input
+                    type="color"
+                    value={selectedShadowColor}
                     onChange={(e) => setSelectedShadowColor(e.target.value)}
                     className="absolute inset-0 w-full h-full scale-150 cursor-pointer opacity-0"
                   />
@@ -159,7 +159,7 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
               <div className="flex flex-col gap-2">
                 <label className="text-xs uppercase opacity-50">Filtros Rápidos</label>
                 <div className="flex flex-wrap gap-1">
-                  <button 
+                  <button
                     onClick={() => setSelectedRoot(null)}
                     className={`pixel-button px-3 py-1 text-xs ${selectedRoot === null ? 'pixel-button-active' : ''}`}
                   >
@@ -176,7 +176,7 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
                   ))}
                 </div>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  <button 
+                  <button
                     onClick={() => setSelectedSuffix(null)}
                     className={`pixel-button px-3 py-1 text-xs ${selectedSuffix === null ? 'pixel-button-active' : ''}`}
                   >
@@ -215,9 +215,9 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
                     onMouseEnter={() => setHoveredChord(chord)}
                     onMouseLeave={() => setHoveredChord(null)}
                     className="py-3 text-3xl font-bold hover:scale-105 transition-all flex items-center justify-center min-h-[70px] bg-white text-black border-4 border-black"
-                    style={{ 
-                        color: selectedColor,
-                        textShadow: `1px 1px ${selectedShadowColor}, -1px -1px ${selectedShadowColor}, 1px -1px ${selectedShadowColor}, -1px 1px ${selectedShadowColor}`
+                    style={{
+                      color: selectedColor,
+                      textShadow: `1px 1px ${selectedShadowColor}, -1px -1px ${selectedShadowColor}, 1px -1px ${selectedShadowColor}, -1px 1px ${selectedShadowColor}`
                     }}
                   >
                     {chord}
@@ -229,7 +229,7 @@ const AddChordModal: React.FC<AddChordModalProps> = ({ collections, onAdd, onClo
                   </div>
                 )}
               </div>
-              
+
               {/* Scroll indicators */}
               <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-[#0d2b45] px-4 py-1 border border-white/20 rounded-full text-[10px] uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                 Desliza para ver más ↓

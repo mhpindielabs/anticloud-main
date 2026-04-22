@@ -4,7 +4,7 @@ import { FONT_FACES } from '../constants';
 export const wrapText = (context: CanvasRenderingContext2D, text: string, maxWidth: number): string[] => {
   const words = text.split(' ');
   if (words.length === 0) return [];
-  
+
   const lines: string[] = [];
   let currentLine = words[0];
 
@@ -34,7 +34,7 @@ export const captureBoardToCanvas = async (activeBoard: Board, captureArea?: { x
   if (!ctx) {
     throw new Error("Could not get canvas context");
   }
-  
+
   if (captureArea) {
     ctx.translate(-captureArea.x, -captureArea.y);
   }
@@ -72,14 +72,14 @@ export const captureBoardToCanvas = async (activeBoard: Board, captureArea?: { x
       img.onload = () => resolve({ item, img });
       img.onerror = () => {
         console.warn(`Could not load image for item ${item.id}: ${item.imageUrl}`);
-        resolve({item, img: null});
+        resolve({ item, img: null });
       };
       img.src = item.imageUrl;
     })
   );
 
   const loadedItems = await Promise.all(imageLoadPromises);
-  
+
   for (const { item, img } of loadedItems) {
     if (!img) continue;
 
@@ -92,7 +92,7 @@ export const captureBoardToCanvas = async (activeBoard: Board, captureArea?: { x
       const fontName = (item.fontFamily || FONT_FACES[0]).split(',')[0].replace(/'/g, '');
       ctx.font = `${fontSize}px "${fontName}"`;
       ctx.textBaseline = 'top';
-      
+
       const textOffsetX = item.textOffsetX || 0;
       const textOffsetY = item.textOffsetY || 0;
 
@@ -114,7 +114,7 @@ export const captureBoardToCanvas = async (activeBoard: Board, captureArea?: { x
           ctx.fillText(line, textX - SHADOW_OFFSET, lineY + SHADOW_OFFSET);
           ctx.fillText(line, textX + SHADOW_OFFSET, lineY + SHADOW_OFFSET);
         }
-        
+
         ctx.fillStyle = item.textColor || 'black';
         ctx.fillText(line, textX, lineY);
       }

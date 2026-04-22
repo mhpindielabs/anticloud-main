@@ -9,11 +9,11 @@ interface InventoryModalProps {
   onRemoveItem: (id: string) => void;
 }
 
-const InventoryModal: React.FC<InventoryModalProps> = ({ 
-  inventory, 
-  onClose, 
-  onAddItem, 
-  onRemoveItem 
+const InventoryModal: React.FC<InventoryModalProps> = ({
+  inventory,
+  onClose,
+  onAddItem,
+  onRemoveItem
 }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -35,15 +35,15 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {inventory.map((item) => (
-                <div 
-                  key={item.id} 
+                <div
+                  key={item.id}
                   className="pixel-panel p-2 bg-slate-800/50 hover:bg-slate-700/50 transition-colors group relative"
                 >
                   <div className="aspect-square flex items-center justify-center bg-slate-900/50 rounded p-2 mb-2">
                     {item.imageUrl ? (
-                      <img 
-                        src={item.imageUrl} 
-                        alt="Item" 
+                      <img
+                        src={item.imageUrl}
+                        alt="Item"
                         className="max-w-full max-h-full object-contain pixelated"
                         referrerPolicy="no-referrer"
                       />
@@ -53,16 +53,16 @@ const InventoryModal: React.FC<InventoryModalProps> = ({
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex justify-between items-center gap-1">
-                    <button 
+                    <button
                       onClick={() => onAddItem(item)}
                       className="pixel-button p-1 bg-green-600 flex-1 text-[10px]"
                       title="Añadir a la pizarra"
                     >
                       <PlusIcon />
                     </button>
-                    <button 
+                    <button
                       onClick={() => onRemoveItem(item.id)}
                       className="pixel-button p-1 bg-red-600"
                       title="Eliminar del inventario"

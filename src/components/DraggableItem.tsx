@@ -726,14 +726,14 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ item, onUpdate, onDelete,
               <LinkIcon />
             </button>
           )}
-          <button 
+          <button
             onClick={() => {
               onToggleInventory(item);
               if (!isInInventory) {
                 setWasSaved(true);
                 setTimeout(() => setWasSaved(false), 2000);
               }
-            }} 
+            }}
             className={`pixel-button p-1 transition-all duration-300 ${isInInventory ? 'bg-green-600' : 'bg-amber-600 hover:bg-amber-500'} ${wasSaved ? 'scale-110' : ''}`}
             title={isInInventory ? "Quitar del Inventario" : "Guardar en Inventario"}
           >
@@ -812,7 +812,7 @@ const TextEditorWithStyles: React.FC<{
   const fragColor = currentFrag?.color || item.textColor || '#000000';
   const fragShadowColor = currentFrag?.shadowColor || item.textShadowColor || '#FFFFFF';
   const fragHasShadow = currentFrag?.hasShadow ?? item.textShadow ?? true;
-  const fragShadowStyle = fragHasShadow 
+  const fragShadowStyle = fragHasShadow
     ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
     : 'none';
 
@@ -893,7 +893,7 @@ const TextDisplay: React.FC<{
             ? `2px 2px ${fragShadowColor}, -2px -2px ${fragShadowColor}, 2px -2px ${fragShadowColor}, -2px 2px ${fragShadowColor}`
             : 'none';
           return (
-            <span 
+            <span
               key={`frag-${i}`}
               data-fragment-index={i}
               style={{ color: frag.color || item.textColor || '#000000', textShadow: fragShadowStyle }}

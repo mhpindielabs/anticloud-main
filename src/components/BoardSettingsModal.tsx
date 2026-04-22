@@ -39,7 +39,7 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
       reader.onload = (event) => {
         const url = event.target?.result as string;
         setBackgroundUrl(url);
-        
+
         // Automatically try to get dimensions for new uploads
         const img = new Image();
         img.onload = () => {
@@ -76,9 +76,9 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <label className="text-sm text-white/70">Ancho (px)</label>
-              <input 
-                type="number" 
-                value={width} 
+              <input
+                type="number"
+                value={width}
                 onChange={(e) => setWidth(Number(e.target.value))}
                 className="pixel-input w-full"
                 min="50"
@@ -87,9 +87,9 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
             </div>
             <div className="flex flex-col gap-2">
               <label className="text-sm text-white/70">Alto (px)</label>
-              <input 
-                type="number" 
-                value={height} 
+              <input
+                type="number"
+                value={height}
                 onChange={(e) => setHeight(Number(e.target.value))}
                 className="pixel-input w-full"
                 min="50"
@@ -102,7 +102,7 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
             <div className="flex justify-between items-end">
               <label className="text-sm text-white/70">Fondo de Pizarra</label>
               {backgroundUrl && (
-                <button 
+                <button
                   onClick={handleAdjustToImage}
                   disabled={isAdjusting}
                   className="text-[10px] text-indigo-400 hover:text-indigo-300 underline uppercase tracking-wider"
@@ -112,9 +112,9 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
               )}
             </div>
             <div className="flex gap-2">
-              <input 
-                type="text" 
-                value={backgroundUrl} 
+              <input
+                type="text"
+                value={backgroundUrl}
                 onChange={(e) => setBackgroundUrl(e.target.value)}
                 placeholder="URL de imagen o sube un archivo"
                 className="pixel-input flex-1"
@@ -129,19 +129,19 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
           <div className="flex flex-col gap-2">
             <label className="text-sm text-white/70">Modo de Fondo</label>
             <div className="grid grid-cols-3 gap-2">
-              <button 
+              <button
                 onClick={() => setBackgroundMode('tile')}
                 className={`pixel-button p-2 text-xs ${backgroundMode === 'tile' ? 'pixel-button-active' : 'bg-white/5'}`}
               >
                 Mosaico
               </button>
-              <button 
+              <button
                 onClick={() => setBackgroundMode('expand')}
                 className={`pixel-button p-2 text-xs ${backgroundMode === 'expand' ? 'pixel-button-active' : 'bg-white/5'}`}
               >
                 Expandir
               </button>
-              <button 
+              <button
                 onClick={() => setBackgroundMode('center')}
                 className={`pixel-button p-2 text-xs ${backgroundMode === 'center' ? 'pixel-button-active' : 'bg-white/5'}`}
               >
@@ -152,8 +152,8 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
 
           <div className="flex flex-col gap-2">
             <label className="text-sm text-white/70">Filtro de Pantalla Retro</label>
-            <select 
-              value={screenFilter} 
+            <select
+              value={screenFilter}
               onChange={(e) => setScreenFilter(e.target.value as any)}
               className="pixel-input w-full"
             >
@@ -168,8 +168,8 @@ const BoardSettingsModal: React.FC<BoardSettingsModalProps> = ({ board, onClose,
 
           <div className="flex flex-col gap-2">
             <label className="text-sm text-white/70">Efectos de Partículas</label>
-            <select 
-              value={particles} 
+            <select
+              value={particles}
               onChange={(e) => setParticles(e.target.value as any)}
               className="pixel-input w-full"
             >

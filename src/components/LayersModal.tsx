@@ -11,13 +11,13 @@ interface LayersModalProps {
   selectedItemIds: string[];
 }
 
-const LayersModal: React.FC<LayersModalProps> = ({ 
-  items, 
-  onClose, 
-  onReorder, 
-  onDelete, 
+const LayersModal: React.FC<LayersModalProps> = ({
+  items,
+  onClose,
+  onReorder,
+  onDelete,
   onSelect,
-  selectedItemIds 
+  selectedItemIds
 }) => {
   // Items are rendered from back to front in the canvas, 
   // so the last item in the array is the one on top.
@@ -52,7 +52,7 @@ const LayersModal: React.FC<LayersModalProps> = ({
             <p className="text-center text-white/40 py-8 italic">No hay elementos en esta pizarra</p>
           ) : (
             reversedItems.map((item, index) => (
-              <div 
+              <div
                 key={item.id}
                 onClick={() => onSelect(item.id)}
                 className={`pixel-content-box flex items-center justify-between p-2 cursor-pointer transition-all ${selectedItemIds.includes(item.id) ? 'border-indigo-500 bg-indigo-900/30' : 'hover:bg-white/5'}`}
@@ -71,7 +71,7 @@ const LayersModal: React.FC<LayersModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); onReorder(item.id, 'up'); }}
                     disabled={index === 0}
                     className="p-1 hover:bg-white/10 disabled:opacity-20 text-white/70"
@@ -79,7 +79,7 @@ const LayersModal: React.FC<LayersModalProps> = ({
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); onReorder(item.id, 'down'); }}
                     disabled={index === reversedItems.length - 1}
                     className="p-1 hover:bg-white/10 disabled:opacity-20 text-white/70"
@@ -87,7 +87,7 @@ const LayersModal: React.FC<LayersModalProps> = ({
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
                   </button>
-                  <button 
+                  <button
                     onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
                     className="p-1 hover:bg-red-900/50 text-red-400"
                     title="Eliminar"

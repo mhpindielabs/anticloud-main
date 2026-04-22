@@ -98,8 +98,8 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
 
   // Filtro de previsualización derivado
   const activePreviewSequence = editedItem.animationHueFilters || (editedItem.secondaryBoxFilter ? [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter] : []);
-  const activePreviewFilter = activePreviewSequence.length > 1 
-    ? activePreviewSequence[previewFrameIndex % activePreviewSequence.length] 
+  const activePreviewFilter = activePreviewSequence.length > 1
+    ? activePreviewSequence[previewFrameIndex % activePreviewSequence.length]
     : (editedItem.boxFilter || 'none');
 
   const handleSave = () => {
@@ -301,22 +301,22 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
 
           <div className="relative w-full h-56 pixel-content-box flex items-center justify-center bg-[#203c56] overflow-hidden">
             <div className={`absolute inset-0 flex items-center justify-center ${[
-                editedItem.neonGlow ? 'neon-text' : '',
-                editedItem.floating ? 'effect-floating' : '',
-                editedItem.glitch ? 'effect-glitch' : '',
-                editedItem.rainbow ? 'effect-rainbow' : '',
-                editedItem.scanlines ? 'effect-scanlines' : '',
-                editedItem.terminalScan ? 'effect-terminal-scan' : '',
-                editedItem.shake ? 'effect-shake' : '',
-                editedItem.pulse ? 'effect-pulse' : '',
-                editedItem.blur ? 'effect-blur' : '',
-              ].filter(Boolean).join(' ')
+              editedItem.neonGlow ? 'neon-text' : '',
+              editedItem.floating ? 'effect-floating' : '',
+              editedItem.glitch ? 'effect-glitch' : '',
+              editedItem.rainbow ? 'effect-rainbow' : '',
+              editedItem.scanlines ? 'effect-scanlines' : '',
+              editedItem.terminalScan ? 'effect-terminal-scan' : '',
+              editedItem.shake ? 'effect-shake' : '',
+              editedItem.pulse ? 'effect-pulse' : '',
+              editedItem.blur ? 'effect-blur' : '',
+            ].filter(Boolean).join(' ')
               }`}>
               <div className="absolute inset-0 flex items-center justify-center">
                 {!editedItem.type || editedItem.type !== ItemType.PlainText ? (
                   <div
                     className="w-full h-full relative"
-                    style={{ 
+                    style={{
                       filter: activePreviewFilter
                     }}
                   >
@@ -393,21 +393,20 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
             {(() => {
               const sequence = editedItem.animationHueFilters || (editedItem.secondaryBoxFilter ? [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter] : []);
               if (sequence.length <= 1) return null;
-              
+
               return (
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 p-1.5 bg-black/40 rounded-full border border-white/10 backdrop-blur-sm shadow-xl">
                   {sequence.map((_, i) => {
                     const isActive = previewFrameIndex === i;
                     const isEditing = selectedFrameIndex === i;
-                    
+
                     return (
-                      <div 
-                        key={`led-${i}`} 
-                        className={`w-2.5 h-2.5 rounded-full transition-all duration-150 ${
-                          isActive 
-                            ? 'bg-[#00ff00] shadow-[0_0_10px_#00ff00] opacity-100' 
-                            : 'bg-white/10 opacity-30'
-                        } ${isEditing ? 'ring-2 ring-white ring-offset-1 ring-offset-black/20 scale-110 z-10' : ''}`}
+                      <div
+                        key={`led-${i}`}
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-150 ${isActive
+                          ? 'bg-[#00ff00] shadow-[0_0_10px_#00ff00] opacity-100'
+                          : 'bg-white/10 opacity-30'
+                          } ${isEditing ? 'ring-2 ring-white ring-offset-1 ring-offset-black/20 scale-110 z-10' : ''}`}
                       />
                     );
                   })}
@@ -582,13 +581,13 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
               <div className="flex flex-col gap-3 mt-2">
                 <div className="flex justify-between items-center px-1">
                   <label className="text-xs uppercase opacity-70 font-mono">Secuencia de Cuadros (Frames)</label>
-                  <button 
+                  <button
                     onClick={() => {
                       const currentFilters = editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none'];
                       const newFilters = [...currentFilters, currentFilters[currentFilters.length - 1]];
-                      setEditedItem(prev => ({ 
-                        ...prev, 
-                        animationHueFilters: newFilters, 
+                      setEditedItem(prev => ({
+                        ...prev,
+                        animationHueFilters: newFilters,
                         secondaryBoxFilter: undefined,
                         blinkInterval: prev.blinkInterval || 500 // Asegurar que el motor rítmico se active
                       }));
@@ -599,13 +598,13 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                     + Añadir Frame
                   </button>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-4 p-3 bg-black/30 rounded-lg border border-white/5 overflow-y-auto max-h-[280px] min-h-[100px] justify-start content-start">
                   {(editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none']).map((filter, idx) => {
                     const isSequence = !!editedItem.animationHueFilters;
                     const isSecondary = !isSequence && idx === 1 && editedItem.secondaryBoxFilter;
                     const isActive = selectedFrameIndex === idx;
-                    
+
                     return (
                       <div key={`frame-${idx}`} className="relative group shrink-0">
                         <button
@@ -621,9 +620,9 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                           }} />
                           <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[8px] font-mono opacity-50">{idx + 1}</span>
                         </button>
-                        
+
                         {(editedItem.animationHueFilters?.length || 0) > 1 && (
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               const newFilters = [...(editedItem.animationHueFilters || [])];
@@ -655,11 +654,11 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                         const currentFilters = editedItem.animationHueFilters || [editedItem.boxFilter || 'none', editedItem.secondaryBoxFilter || 'none'];
                         const newFilters = [...currentFilters];
                         newFilters[selectedFrameIndex] = opt.filter;
-                        
+
                         // Si era el sistema viejo de 2, lo migramos al nuevo
                         if (!editedItem.animationHueFilters) {
-                          setEditedItem(prev => ({ 
-                            ...prev, 
+                          setEditedItem(prev => ({
+                            ...prev,
                             animationHueFilters: newFilters,
                             boxFilter: newFilters[0],
                             secondaryBoxFilter: undefined // Desactivar el sistema viejo
@@ -677,23 +676,23 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
                     />
                   ))}
                 </div>
-                      {/* METRONOME */}
-              <div className="flex flex-col gap-3 pt-2 mt-auto">
-                 <div className="flex justify-between items-baseline">
+                {/* METRONOME */}
+                <div className="flex flex-col gap-3 pt-2 mt-auto">
+                  <div className="flex justify-between items-baseline">
                     <label className="text-xs uppercase text-violet-300 font-bold">Velocidad de Animación (BPM)</label>
                     <span className="text-xl font-mono text-white tracking-widest">{bpm} <span className="text-[10px] opacity-50">BPM</span></span>
-                 </div>
-                 <input
-                   type="range"
-                   min="30"
-                   max="480"
-                   step="1"
-                   value={bpm}
-                   onChange={(e) => handleBpmChange({ target: { value: e.target.value } } as any)}
-                   className="w-full h-2 bg-violet-900/50 rounded-full appearance-none cursor-pointer accent-violet-400"
-                 />
-                 <p className="text-[10px] opacity-40 uppercase italic">Sincronizado globalmente con el metrónomo de la pizarra</p>
-              </div>        </div>
+                  </div>
+                  <input
+                    type="range"
+                    min="30"
+                    max="480"
+                    step="1"
+                    value={bpm}
+                    onChange={(e) => handleBpmChange({ target: { value: e.target.value } } as any)}
+                    className="w-full h-2 bg-violet-900/50 rounded-full appearance-none cursor-pointer accent-violet-400"
+                  />
+                  <p className="text-[10px] opacity-40 uppercase italic">Sincronizado globalmente con el metrónomo de la pizarra</p>
+                </div>        </div>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -851,8 +850,8 @@ const TextEditModal: React.FC<TextEditModalProps> = ({
               {editedItem.textFragments && editedItem.textFragments.length > 0 ? (
                 <div className="flex flex-col gap-2 max-h-56 overflow-y-auto p-1 pixel-panel bg-black/20">
                   {editedItem.textFragments.map((frag, i) => (
-                    <div 
-                      key={i} 
+                    <div
+                      key={i}
                       className={`flex gap-2 items-start bg-black/30 p-2 rounded border ${focusedFragmentIndex === i ? 'border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'border-white/5'} transition-all`}
                       onClick={() => setFocusedFragmentIndex(i)}
                     >

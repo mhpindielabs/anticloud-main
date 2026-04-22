@@ -20,21 +20,21 @@ const NOTE_ALIASES: Record<string, string> = {
 const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 
 const SCALES = [
-  { 
-    name: 'Mayor', 
-    intervals: [0, 2, 4, 5, 7, 9, 11], 
+  {
+    name: 'Mayor',
+    intervals: [0, 2, 4, 5, 7, 9, 11],
     types: ['', 'm', 'm', '', '', 'm', 'dim'],
     roman: ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII°']
   },
-  { 
-    name: 'Menor Natural', 
-    intervals: [0, 2, 3, 5, 7, 8, 10], 
+  {
+    name: 'Menor Natural',
+    intervals: [0, 2, 3, 5, 7, 8, 10],
     types: ['m', 'dim', '', 'm', 'm', '', ''],
     roman: ['I', 'II°', 'III', 'IV', 'V', 'VI', 'VII']
   },
-  { 
-    name: 'Menor Armónica', 
-    intervals: [0, 2, 3, 5, 7, 8, 11], 
+  {
+    name: 'Menor Armónica',
+    intervals: [0, 2, 3, 5, 7, 8, 11],
     types: ['m', 'dim', 'aug', 'm', '', '', 'dim'],
     roman: ['I', 'II°', 'III+', 'IV', 'V', 'VI', 'VII°']
   },
@@ -68,13 +68,13 @@ const AddHarmonizationModal: React.FC<AddHarmonizationModalProps> = ({ collectio
   const currentHarmonization = useMemo(() => {
     const rootIndex = NOTES.indexOf(selectedRoot);
     const scale = SCALES[selectedScaleIndex];
-    
+
     return scale.intervals.map((interval, i) => {
       if (mode === 'roman') return scale.roman[i];
-      
+
       const noteName = getNoteName(rootIndex + interval);
       if (mode === 'notes') return noteName;
-      
+
       const type = scale.types[i];
       return `${noteName}${type}`;
     });
@@ -101,7 +101,7 @@ const AddHarmonizationModal: React.FC<AddHarmonizationModalProps> = ({ collectio
   return (
     <Modal onClose={onClose} title="Insertar Armonización / Escala" className="max-w-4xl">
       <div className="p-6 flex flex-col gap-8 max-h-[85vh] overflow-y-auto">
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Left: Configuration */}
           <div className="flex flex-col gap-6">
@@ -134,9 +134,9 @@ const AddHarmonizationModal: React.FC<AddHarmonizationModalProps> = ({ collectio
                 ))}
               </div>
               <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                <input 
-                  type="checkbox" 
-                  checked={useFlats} 
+                <input
+                  type="checkbox"
+                  checked={useFlats}
                   onChange={(e) => setUseFlats(e.target.checked)}
                   className="w-4 h-4"
                 />
@@ -175,29 +175,29 @@ const AddHarmonizationModal: React.FC<AddHarmonizationModalProps> = ({ collectio
                 </div>
               </div>
               <div className="flex flex-col gap-2">
-                 <label className="text-sm uppercase font-bold opacity-70">Colores</label>
-                 <div className="flex gap-2">
-                    <div className="flex flex-col items-center gap-1">
-                      <input 
-                        type="color" 
-                        value={selectedColor} 
-                        onChange={(e) => setSelectedColor(e.target.value)}
-                        className="w-8 h-8 cursor-pointer"
-                        title="Color de Texto"
-                      />
-                      <span className="text-[8px] uppercase">Texto</span>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <input 
-                        type="color" 
-                        value={selectedShadowColor} 
-                        onChange={(e) => setSelectedShadowColor(e.target.value)}
-                        className="w-8 h-8 cursor-pointer"
-                        title="Color de Sombra"
-                      />
-                      <span className="text-[8px] uppercase">Sombra</span>
-                    </div>
-                 </div>
+                <label className="text-sm uppercase font-bold opacity-70">Colores</label>
+                <div className="flex gap-2">
+                  <div className="flex flex-col items-center gap-1">
+                    <input
+                      type="color"
+                      value={selectedColor}
+                      onChange={(e) => setSelectedColor(e.target.value)}
+                      className="w-8 h-8 cursor-pointer"
+                      title="Color de Texto"
+                    />
+                    <span className="text-[8px] uppercase">Texto</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <input
+                      type="color"
+                      value={selectedShadowColor}
+                      onChange={(e) => setSelectedShadowColor(e.target.value)}
+                      className="w-8 h-8 cursor-pointer"
+                      title="Color de Sombra"
+                    />
+                    <span className="text-[8px] uppercase">Sombra</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -207,14 +207,14 @@ const AddHarmonizationModal: React.FC<AddHarmonizationModalProps> = ({ collectio
             <label className="text-sm uppercase font-bold opacity-70">Vista Previa de los 7 Acordes</label>
             <div className="pixel-panel bg-black/40 p-4 flex flex-col gap-2 min-h-[300px]">
               {currentHarmonization.map((chord, i) => (
-                <div 
-                  key={i} 
+                <div
+                  key={i}
                   className="bg-white border-2 border-black p-2 flex items-center justify-between"
                 >
                   <span className="text-xs opacity-50 font-mono">[{i + 1}]</span>
-                  <span 
+                  <span
                     className="text-xl font-bold"
-                    style={{ 
+                    style={{
                       color: selectedColor,
                       textShadow: `1px 1px ${selectedShadowColor}, -1px -1px ${selectedShadowColor}, 1px -1px ${selectedShadowColor}, -1px 1px ${selectedShadowColor}`
                     }}

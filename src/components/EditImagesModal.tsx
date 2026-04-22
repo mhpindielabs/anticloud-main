@@ -80,10 +80,10 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
     }
 
     if (event.target) {
-        event.target.value = '';
+      event.target.value = '';
     }
   };
-  
+
   const handleApply = () => {
     onApply(currentImages);
     onClose();
@@ -93,62 +93,62 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
     const imagesToExport = currentImages.filter((img): img is string => !!img);
 
     if (imagesToExport.length === 0) {
-        alert("No hay imágenes para exportar.");
-        return;
+      alert("No hay imágenes para exportar.");
+      return;
     }
-    
+
     try {
-        const jsonString = JSON.stringify(imagesToExport, null, 2);
-        const blob = new Blob([jsonString], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `pixelboard_${type}_collection.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+      const jsonString = JSON.stringify(imagesToExport, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pixelboard_${type}_collection.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (error) {
-        console.error("Failed to generate JSON file:", error);
-        alert("Ocurrió un error al crear el archivo JSON.");
+      console.error("Failed to generate JSON file:", error);
+      alert("Ocurrió un error al crear el archivo JSON.");
     }
   };
-  
+
   const handleLoadClick = () => {
-      jsonInputRef.current?.click();
+    jsonInputRef.current?.click();
   };
-  
+
   const handleJsonFileLoad = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          try {
-              const text = e.target?.result;
-              if (typeof text !== 'string') throw new Error("File is not text");
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result;
+        if (typeof text !== 'string') throw new Error("File is not text");
 
-              const parsed = JSON.parse(text);
-              if (!Array.isArray(parsed) || !parsed.every(item => typeof item === 'string' || item === null)) {
-                  throw new Error("Invalid JSON format. Expected an array of strings.");
-              }
-              
-              const loadedImages = parsed.filter(item => typeof item === 'string' && item.startsWith('data:image'));
-              setCurrentImages(padArray(loadedImages as string[], ASSET_SLOTS));
-          } catch (error) {
-              console.error("Failed to load or parse asset file:", error);
-              alert("Error al cargar el archivo de assets. Asegúrate de que es un archivo JSON válido exportado desde Pixel Board.");
-          }
-      };
-      reader.onerror = () => {
-          console.error("Failed to read the file.");
-          alert("Ocurrió un error al leer el archivo.");
+        const parsed = JSON.parse(text);
+        if (!Array.isArray(parsed) || !parsed.every(item => typeof item === 'string' || item === null)) {
+          throw new Error("Invalid JSON format. Expected an array of strings.");
+        }
+
+        const loadedImages = parsed.filter(item => typeof item === 'string' && item.startsWith('data:image'));
+        setCurrentImages(padArray(loadedImages as string[], ASSET_SLOTS));
+      } catch (error) {
+        console.error("Failed to load or parse asset file:", error);
+        alert("Error al cargar el archivo de assets. Asegúrate de que es un archivo JSON válido exportado desde Pixel Board.");
       }
-      reader.readAsText(file);
+    };
+    reader.onerror = () => {
+      console.error("Failed to read the file.");
+      alert("Ocurrió un error al leer el archivo.");
+    }
+    reader.readAsText(file);
 
-      if (event.target) {
-          event.target.value = '';
-      }
+    if (event.target) {
+      event.target.value = '';
+    }
   };
 
   const handleDownloadImage = (imgSrc: string, index: number) => {
@@ -170,14 +170,14 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
 
   return (
     <Modal onClose={onClose} title={title}>
-      <input 
-        type="file" 
-        ref={imageInputRef} 
-        className="hidden" 
-        onChange={handleImageFileChange} 
+      <input
+        type="file"
+        ref={imageInputRef}
+        className="hidden"
+        onChange={handleImageFileChange}
         accept="image/png, image/jpeg, image/gif"
       />
-       <input
+      <input
         type="file"
         ref={jsonInputRef}
         className="hidden"
@@ -185,7 +185,7 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
         accept="application/json"
       />
       <div className="relative">
-         {isProcessing && (
+        {isProcessing && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
             <p className="text-3xl animate-pulse">Procesando...</p>
           </div>
@@ -194,15 +194,15 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
           {/* Top Controls */}
           <div className="flex justify-center gap-4">
             <button onClick={handleLoadClick} className="pixel-button px-4 py-2 text-xl bg-blue-600 hover:bg-blue-500">
-                Cargar Colección
+              Cargar Colección
             </button>
             <button onClick={handleExport} className="pixel-button px-4 py-2 text-xl bg-yellow-600 hover:bg-yellow-500">
-                Exportar Colección
+              Exportar Colección
             </button>
           </div>
 
           <hr className="pixel-divider" />
-          
+
           {/* Image Grid */}
           <div className="grid grid-cols-3 gap-4 min-h-[340px] content-start">
             {Array.from({ length: IMAGES_PER_PAGE }).map((_, i) => {
@@ -211,7 +211,7 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
               const imgSrc = currentImages[index];
               return (
                 <div key={index} className="pixel-content-box flex flex-col items-center justify-between gap-2 p-2">
-                  <div 
+                  <div
                     className="w-full h-24 flex items-center justify-center cursor-pointer"
                     onClick={() => handleUploadClick(index)}
                     title="Haz clic para subir"
@@ -246,18 +246,18 @@ const EditImagesModal: React.FC<EditImagesModalProps> = ({ onClose, onApply, ima
               <hr className="pixel-divider" />
               <div className="flex items-center justify-center gap-4">
                 <button onClick={() => handlePageChange(currentPage - 1)} className="pixel-button px-4 py-1 text-lg" disabled={currentPage === 1}>
-                    Anterior
+                  Anterior
                 </button>
                 <span className="text-xl">Página {currentPage} de {totalPages}</span>
                 <button onClick={() => handlePageChange(currentPage + 1)} className="pixel-button px-4 py-1 text-lg" disabled={currentPage === totalPages}>
-                    Siguiente
+                  Siguiente
                 </button>
               </div>
             </>
           )}
-          
+
           <hr className="pixel-divider" />
-          
+
           {/* Bottom Controls */}
           <div className="flex justify-center items-center gap-4">
             <button onClick={onClose} className="pixel-button px-6 py-2 flex items-center gap-2 text-2xl bg-red-700 hover:bg-red-600">

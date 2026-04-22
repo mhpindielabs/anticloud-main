@@ -3,18 +3,18 @@ export const DEFAULT_BACKGROUND = '';
 
 // Default images for title element collections.
 export const DEFAULT_TITLE_IMAGE_URLS: { [key in 'x1/2' | 'x1' | 'x2' | 'x3' | 'x4']: string } = {
-    'x1/2': 'https://i.imgur.com/ME0kC4m.png',
-    x1: 'https://i.imgur.com/DFIsoDP.png',
-    x2: 'https://i.imgur.com/8mdKJXY.png',
-    x3: 'https://i.imgur.com/skzPVzV.png',
-    x4: 'https://i.imgur.com/KO9etx2.png',
+  'x1/2': 'https://i.imgur.com/ME0kC4m.png',
+  x1: 'https://i.imgur.com/DFIsoDP.png',
+  x2: 'https://i.imgur.com/8mdKJXY.png',
+  x3: 'https://i.imgur.com/skzPVzV.png',
+  x4: 'https://i.imgur.com/KO9etx2.png',
 };
 
 // Default images for textbox element collections.
 export const DEFAULT_TEXTBOX_IMAGE_URLS: { [key in 'x1' | 'x4' | 'x16']: string } = {
-    x1: 'https://i.imgur.com/nWTw0o4.png',
-    x4: 'https://i.imgur.com/9OJR3wu.png',
-    x16: 'https://i.imgur.com/FEWqBOx.png',
+  x1: 'https://i.imgur.com/nWTw0o4.png',
+  x4: 'https://i.imgur.com/9OJR3wu.png',
+  x16: 'https://i.imgur.com/FEWqBOx.png',
 };
 
 export const ASSET_SLOTS = 18;

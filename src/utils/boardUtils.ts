@@ -23,7 +23,7 @@ export const createNewBoard = (): Board => ({
 export const initializeTitleImageCollections = async (): Promise<TitleImageCollections> => {
   const storageKey = 'pixelBoard_titleImages_collections';
   let savedCollections: Partial<TitleImageCollections> = {};
-  
+
   try {
     const saved = await storage.getItem(storageKey);
     if (saved) {
@@ -35,15 +35,15 @@ export const initializeTitleImageCollections = async (): Promise<TitleImageColle
 
   const collections: Partial<TitleImageCollections> = {};
   const keys: TitleCollectionKey[] = ['x1/2', 'x1', 'x2', 'x3', 'x4'];
-  
+
   for (const key of keys) {
     const firstImg = savedCollections[key]?.[0];
     // Force re-init if it's an old attachment URL or if it's missing
     const isOldUrl = firstImg?.includes('/api/attachments/') || firstImg?.includes('.run.app/api/attachments/');
-    
+
     const collection = savedCollections[key];
     const hasVariants = collection && collection.length > 1 && collection[1] !== null;
-    
+
     if (collection && collection.some(img => img !== null) && !isOldUrl && hasVariants) {
       collections[key] = padArray(collection!, ASSET_SLOTS);
     } else {
@@ -61,7 +61,7 @@ export const initializeTitleImageCollections = async (): Promise<TitleImageColle
       }
     }
   }
-  
+
   const finalCollections = collections as TitleImageCollections;
   await storage.setItem(storageKey, JSON.stringify(finalCollections));
   return finalCollections;
@@ -70,7 +70,7 @@ export const initializeTitleImageCollections = async (): Promise<TitleImageColle
 export const initializeTextboxImageCollections = async (): Promise<TextboxImageCollections> => {
   const storageKey = 'pixelBoard_textboxImages_collections';
   let savedCollections: Partial<TextboxImageCollections> = {};
-  
+
   try {
     const saved = await storage.getItem(storageKey);
     if (saved) {
@@ -82,7 +82,7 @@ export const initializeTextboxImageCollections = async (): Promise<TextboxImageC
 
   const collections: Partial<TextboxImageCollections> = {};
   const keys: TextboxCollectionKey[] = ['x1', 'x4', 'x16'];
-  
+
   for (const key of keys) {
     if (savedCollections[key] && savedCollections[key]?.some(img => img !== null)) {
       collections[key] = padArray(savedCollections[key]!, ASSET_SLOTS);
@@ -98,7 +98,7 @@ export const initializeTextboxImageCollections = async (): Promise<TextboxImageC
       }
     }
   }
-  
+
   const finalCollections = collections as TextboxImageCollections;
   await storage.setItem(storageKey, JSON.stringify(finalCollections));
   return finalCollections;

@@ -254,7 +254,7 @@ const App: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Ignorar si estamos escribiendo en un input o textarea
       if (
-        document.activeElement?.tagName === 'INPUT' || 
+        document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
         (document.activeElement as HTMLElement)?.isContentEditable
       ) return;
@@ -295,13 +295,13 @@ const App: React.FC = () => {
         // Target (0,0) logical origin accurately using absolute screen center
         const targetX = (canvasOffsetX * zoom) - (window.innerWidth / 2);
         const targetY = (canvasOffsetY * zoom) - (window.innerHeight / 2);
-        
+
         viewport.scrollTo({
           left: targetX,
           top: targetY,
           behavior: 'auto' // Instant on first load
         });
-        
+
         hasInitializedCamera.current = true;
       }, 150);
       return () => clearTimeout(timer);
@@ -325,10 +325,10 @@ const App: React.FC = () => {
       )}
 
       {/* Mouse Coordinates Indicator (Debug) */}
-      <div 
+      <div
         className="fixed pointer-events-none z-[9999] text-[10px] font-mono text-cyan-400 bg-black/60 px-1.5 py-0.5 rounded border border-cyan-500/30 backdrop-blur-sm"
-        style={{ 
-          left: `${mouseCoords.clientX + 15}px`, 
+        style={{
+          left: `${mouseCoords.clientX + 15}px`,
           top: `${mouseCoords.clientY + 15}px`,
           display: isBoardsLoaded ? 'block' : 'none'
         }}
